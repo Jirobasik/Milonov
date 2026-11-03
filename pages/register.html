@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self';
+                   script-src 'self' https://code.jquery.com https://cdn.jsdelivr.net https://stackpath.bootstrapcdn.com;
+                   style-src  'self' https://stackpath.bootstrapcdn.com 'unsafe-inline';
+                   img-src    'self' data:;
+                   object-src 'none';">
+    <meta http-equiv="Referrer-Policy" content="same-origin">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <title>Вход и Регистрация — Милоновы</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .auth-card {
+            max-width: 480px;
+            margin: 0 auto;
+            text-align: left;
+        }
+        .auth-tabs {
+            display: flex;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 1.5rem;
+        }
+        .auth-tab-btn {
+            flex: 1;
+            padding: 12px 16px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #6c757d;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        .auth-tab-btn:hover {
+            color: #222;
+        }
+        .auth-tab-btn.active {
+            color: #222;
+            border-bottom-color: #ffd700;
+        }
+        .auth-field {
+            margin-bottom: 1.1rem;
+        }
+        .auth-field label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 0.35rem;
+            color: #333;
+        }
+        .auth-field input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            background: #fff;
+            transition: border-color 0.2s;
+        }
+        .auth-field input:focus {
+            border-color: #ffd700;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.25);
+        }
+        .btn-auth-submit {
+            width: 100%;
+            padding: 12px;
+            background: #ffd700;
+            color: #222;
+            border: 2px solid #e0be00;
+            border-radius: 6px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: all 0.2s ease;
+        }
+        .btn-auth-submit:hover {
+            background: #222;
+            color: #ffd700;
+            border-color: #222;
+        }
+        .auth-switch-text {
+            text-align: center;
+            margin-top: 1.25rem;
+            font-size: 0.95rem;
+            color: #555;
+        }
+        .auth-switch-link {
+            color: #222;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        .auth-switch-link:hover {
+            color: #b8860b;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Милоновы</h1>
+    </header>
+
+    <main>
+        <section class="auth-card">
+            <!-- Переключатель вкладок: Вход / Регистрация -->
+            <div class="auth-tabs">
+                <button type="button" class="auth-tab-btn active" id="tabLoginBtn">Войти</button>
+                <button type="button" class="auth-tab-btn" id="tabRegisterBtn">Зарегистрироваться</button>
+            </div>
+
+            <!-- Форма входа -->
+            <form id="loginForm">
+                <div class="auth-field">
+                    <label for="loginUsername">Email, имя пользователя или ID</label>
+                    <input type="text" id="loginUsername" placeholder="Например: 859-200 или email" required>
+                </div>
+                <div class="auth-field">
+                    <label for="loginPassword">Пароль</label>
+                    <input type="password" id="loginPassword" placeholder="Ваш пароль" required>
+                </div>
+                <button type="button" id="submitLoginBtn" class="btn-auth-submit">Войти на сайт</button>
+                <p class="auth-switch-text">
+                    Ещё нет аккаунта? <span class="auth-switch-link" id="switchToRegisterLink">Зарегистрироваться</span>
+                </p>
+            </form>
+
+            <!-- Форма регистрации (скрыта по умолчанию) -->
+            <form id="registerForm" style="display: none;">
+                <div class="auth-field">
+                    <label for="firstName">Имя</label>
+                    <input type="text" id="firstName" placeholder="Ваше имя" required>
+                </div>
+                <div class="auth-field">
+                    <label for="lastName">Фамилия</label>
+                    <input type="text" id="lastName" placeholder="Ваша фамилия" required>
+                </div>
+                <div class="auth-field">
+                    <label for="userId">Игровой ID (номер)</label>
+                    <input type="text" id="userId" placeholder="Например: 859-200" required>
+                </div>
+                <div class="auth-field">
+                    <label for="email">Электронная почта</label>
+                    <input type="email" id="email" placeholder="example@mail.ru" required>
+                </div>
+                <div class="auth-field">
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" placeholder="Минимум 8 символов, цифра и спецсимвол" required>
+                </div>
+                <button type="button" id="registerBtn" class="btn-auth-submit">Зарегистрироваться</button>
+                <p class="auth-switch-text">
+                    Уже есть аккаунт? <span class="auth-switch-link" id="switchToLoginLink">Войти</span>
+                </p>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Милоновы</p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="../js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self';
+                   script-src 'self' https://code.jquery.com https://cdn.jsdelivr.net https://stackpath.bootstrapcdn.com;
+                   style-src  'self' https://stackpath.bootstrapcdn.com 'unsafe-inline';
+                   img-src    'self' data:;
+                   object-src 'none';">
+    <meta http-equiv="Referrer-Policy" content="same-origin">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <title>Ивенты — Милоновы</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .events-list {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .event-card {
+            background: rgba(0, 0, 0, 0.04);
+            border-left: 4px solid #ffd700;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: left;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .event-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .event-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        .event-card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .event-card-title h3 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #222;
+        }
+        .category-badge {
+            background: #ffd700;
+            color: #222;
+            font-size: 0.8rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .category-desc {
+            color: #444;
+            font-size: 1.05rem;
+            margin-bottom: 1.25rem;
+            line-height: 1.5;
+        }
+        .event-open-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 12px 24px;
+            background-color: #ffd700;
+            color: #222;
+            border: 2px solid #e0be00;
+            border-radius: 6px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+        .event-open-btn:hover {
+            background-color: #222;
+            color: #ffd700;
+            border-color: #222;
+        }
+
+        /* Шапка квеста, подсказки и прогресс */
+        .quest-top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .quest-top-right {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+        .btn-back {
+            background: none;
+            border: 1px solid #aaa;
+            color: #333;
+            padding: 6px 14px;
+            border-radius: 5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-back:hover {
+            background: #333;
+            color: #fff;
+            border-color: #333;
+        }
+
+        
+        .btn-admin-skip {
+            background: #222;
+            color: #ffd700;
+            border: 1.5px solid #ffd700;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-admin-skip:hover {
+            background: #ffd700;
+            color: #222;
+            box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+        }
+
+        .hints-badge {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 4px 10px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .progress-box {
+            background: rgba(0, 0, 0, 0.04);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.25rem;
+            text-align: left;
+        }
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 0.4rem;
+        }
+        .progress-bar-bg {
+            background: #e0e0e0;
+            height: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-bar-fill {
+            background: #ffd700;
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Карточка задания */
+        .quest-box {
+            background: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: left;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        }
+        .quest-box h4 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .quest-question {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: 1rem;
+            line-height: 1.4;
+        }
+        .interactive-info {
+            background: #fff9e6;
+            border-left: 4px solid #ffd700;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            color: #444;
+        }
+        .interactive-info code {
+            background: #ffeaa7;
+            color: #222;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        /* Блок подсказок */
+        .hint-container {
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed #e8e8e8;
+        }
+        .btn-hint {
+            background: transparent;
+            border: 1px dashed #c49b1a;
+            color: #7a5d00;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-hint:hover:not(:disabled) {
+            background: #fff3cd;
+            border-color: #856404;
+        }
+        .btn-hint:disabled {
+            opacity: 0.65;
+            cursor: default;
+            border-style: solid;
+            background: #f8f9fa;
+            color: #6c757d;
+            border-color: #ced4da;
+        }
+        .hint-text {
+            margin-top: 0.6rem;
+            background: #fff9e6;
+            border-left: 3px solid #ffd700;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.92rem;
+            color: #664d03;
+            line-height: 1.4;
+        }
+
+        /* Поле ввода и кнопка проверки */
+        .quest-input-group {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+        .quest-box input {
+            padding: 10px 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            flex: 1;
+            min-width: 240px;
+            font-size: 1rem;
+        }
+        .quest-box button.btn-check {
+            padding: 10px 22px;
+            background-color: #ffd700;
+            color: #222;
+            border: 1px solid #e0be00;
+            border-radius: 5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .quest-box button.btn-check:hover {
+            background-color: #222;
+            color: #fff;
+            border-color: #222;
+        }
+
+        
+        /* Мини-игра: Взлом сейфа */
+        .minigame-status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0.6rem 0.9rem;
+            background: #fdf8e2;
+            border-radius: 6px;
+            border: 1px solid #fae8a4;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .btn-minigame-reset {
+            background: #fff;
+            border: 1px solid #c49b1a;
+            color: #7a5d00;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-minigame-reset:hover {
+            background: #ffd700;
+            color: #222;
+        }
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin: 1.25rem auto;
+            max-width: 460px;
+        }
+        @media (max-width: 520px) {
+            .memory-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+            }
+            .memory-card {
+                font-size: 1.6rem !important;
+            }
+        }
+        .memory-card {
+            aspect-ratio: 1 / 1;
+            background: #222;
+            border: 2px solid #ffd700;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s ease;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+        }
+        .memory-card:hover:not(.flipped):not(.matched) {
+            transform: scale(1.04);
+            background: #333;
+        }
+        .memory-card.flipped {
+            background: #fff;
+            border-color: #222;
+        }
+        .memory-card.matched {
+            background: #fff9db;
+            border-color: #ffd700;
+            cursor: default;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+        }
+        .memory-card .card-back {
+            color: #ffd700;
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+        .memory-card .card-front {
+            display: none;
+        }
+        .memory-card.flipped .card-front,
+        .memory-card.matched .card-front {
+            display: block;
+        }
+        .memory-card.flipped .card-back,
+        .memory-card.matched .card-back {
+            display: none;
+        }
+        .minigame-success-box {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        /* ─── Мини-игра Задание 9: Сетка проводки (Flow / Соединение пар) ─── */
+        .circuit-grid-wrapper {
+            margin: 1rem auto;
+            max-width: 480px;
+            overflow-x: auto;
+            padding: 4px;
+        }
+        .circuit-grid-board {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            background: #14171d;
+            border: 2px solid #2e3846;
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.7), 0 4px 14px rgba(0,0,0,0.25);
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .grid-cell {
+            aspect-ratio: 1 / 1;
+            background: #1e2430;
+            border-radius: 6px;
+            border: 1px solid #2d3648;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: background 0.12s, transform 0.12s, box-shadow 0.12s;
+            position: relative;
+            color: #eee;
+        }
+        .grid-cell:hover:not(.wire-locked):not(.endpoint) {
+            background: #2b3445;
+            border-color: #ffd700;
+        }
+        .grid-cell.endpoint {
+            font-size: 1.3rem;
+            font-weight: 900;
+            border-radius: 8px;
+            cursor: pointer !important;
+            border: 2px solid #fff;
+            box-shadow: 0 0 6px currentColor;
+        }
+        .grid-cell.endpoint-active {
+            animation: endpoint-pulse 0.9s infinite alternate;
+        }
+        @keyframes endpoint-pulse {
+            from { transform: scale(1); box-shadow: 0 0 6px #ffd700; }
+            to { transform: scale(1.12); box-shadow: 0 0 16px #ffd700; }
+        }
+        .grid-cell.wire-active {
+            border-color: #fff !important;
+            box-shadow: 0 0 10px currentColor;
+        }
+        .grid-cell.wire-locked {
+            border-color: rgba(255,255,255,0.4) !important;
+            opacity: 0.95;
+            cursor: default;
+        }
+        .grid-circuit-alert {
+            background: #dc3545;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.92rem;
+            text-align: center;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 3px 10px rgba(220, 53, 69, 0.4);
+        }
+        .shake {
+            animation: shake 0.4s ease;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        @media (max-width: 520px) {
+            .circuit-grid-board {
+                gap: 3px;
+                padding: 6px;
+            }
+            .grid-cell {
+                font-size: 0.95rem;
+            }
+            .grid-cell.endpoint {
+                font-size: 1.05rem;
+            }
+        }
+        
+        /* Кнопки множественного выбора для Задания 3 */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+        .option-btn {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            padding: 12px 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-align: center;
+        }
+        .option-btn:hover {
+            border-color: #ffd700;
+            background: #fffdf0;
+        }
+        .option-btn.selected {
+            background: #ffd700;
+            border-color: #222;
+            color: #222;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+        }
+
+        /* Финальный экран */
+        .quest-completed-card {
+            background: #fff;
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            display: none;
+        }
+        .quest-completed-card.active {
+            display: block;
+        }
+        .quest-completed-card h3 {
+            font-size: 1.8rem;
+            color: #222;
+            margin-bottom: 0.75rem;
+        }
+        .time-badge {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #222;
+            background: #ffd700;
+            padding: 0.4rem 1.2rem;
+            border-radius: 6px;
+            display: inline-block;
+            margin: 1rem 0;
+        }
+        .completed-actions {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+        <header>
+        <div class="header-user-bar">
+            <a href="profile.html" class="header-user-badge" title="Личный кабинет">
+                <span>Профиль</span>
+                <img class="header-avatar-img userHeaderAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23ffd700'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23222'/%3E%3Cpath d='M20 85 C20 62 34 58 50 58 C66 58 80 62 80 85 Z' fill='%23222'/%3E%3C/svg%3E" alt="Аватар">
+            </a>
+        </div>
+        <h1>Милоновы</h1>
+        <nav>
+            <ul>
+                <li><a href="../index.html">Главная</a></li>
+                <li><a href="about.html">О нас</a></li>
+                <li><a href="contact.html">Контакты</a></li>
+                <li><a href="rules.html">Устав семьи</a></li>
+                <li><a href="quest.html">Ивенты</a></li>
+                <li><a href="rating.html">Рейтинг</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section>
+            <h2>Ивенты семьи</h2>
+
+            <!-- Список доступных подразделов ивентов -->
+            <div id="eventsList" class="events-list">
+                <div class="event-card">
+                    <div class="event-card-header">
+                        <div class="event-card-title">
+                            <h3>Квест 1</h3>
+                            <span class="category-badge">Активен</span>
+                        </div>
+                    </div>
+                    <p class="category-desc">
+                        Испытание для участников семьи: 10 заданий на знание семьи Милоновых, логику и внимательность.
+                        Пройдите все вопросы на время и зафиксируйте свой рекорд в таблице рейтинга!
+                        Доступно 3 подсказки на время прохождения.
+                    </p>
+                    <button type="button" id="openQuestBtn" class="event-open-btn">
+                        🎮 Начать «Квест 1»
+                    </button>
+                </div>
+            </div>
+
+            <!-- Контейнер с заданиями квеста -->
+            <div id="quest-container" style="display: none;">
+                <div class="quest-top-bar">
+                    <button type="button" id="closeQuestBtn" class="btn-back">← Назад к списку ивентов</button>
+                    <div class="quest-top-right">
+                        <button type="button" id="adminSkipStepBtn" class="btn-admin-skip" style="display: none;" title="Пропустить текущее задание (Админ)">
+                            ⚡ Пропустить шаг (Админ)
+                        </button>
+                        <span id="hintsRemainingBadge" class="hints-badge">💡 Подсказок: 3/3</span>
+                        <span class="category-badge">«Квест 1» активен</span>
+                    </div>
+                </div>
+
+                <div class="progress-box">
+                    <div class="progress-header">
+                        <span id="questProgressLabel">Задание 1 из 10</span>
+                        <span>Квест 1</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="questProgressBar" class="progress-bar-fill"></div>
+                    </div>
+                </div>
+
+                <div id="quest-content">
+                    <!-- Задание 1 -->
+                    <div class="quest-step active" id="step1">
+                        <div class="quest-box">
+                            <h4>Задание 1</h4>
+                            <p class="quest-question">Какое подпольное погоняло у Гоши?</p>
+                            <div class="quest-input-group">
+                                <input type="text" id="answer-1" placeholder="Введите ответ">
+                                <button type="button" id="checkBtn1" class="btn-check">Проверить</button>
+                            </div>
+                            <div class="hint-container">
+                                <button type="button" class="btn-hint" id="hintBtn1">💡 Взять подсказку</button>
+                                <div class="hint-text" id="hintText1" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Задание 2: Мини-игра "Взлом сейфа семьи" -->
+                    <div class="quest-step" id="step2">
+                        <div class="quest-box">
+                            <h4>Задание 2: Мини-игра</h4>
+                            <p class="quest-question">найдите все парные карточки, чтобы разблокировать замок</p>
+
+                            <div class="minigame-status-bar" style="justify-content: center;">
+                                <span id="minigamePairsCount" style="font-weight: 700; color: #856404;">Найдено пар: 0 из 10</span>
+                            </div>
+
+                            <div id="memoryGameGrid" class="memory-grid">
+                                <!-- 8 карточек формируются динамически -->
+                            </div>
+
+                            <div id="minigameSuccessBox" class="minigame-success-box" style="display: none;">
+                                <div style="background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; border-radius: 6px; padding: 10px; margin-bottom: 0.75rem; font-weight: bold; font-size: 1.05rem;">
+                                    🔓 Замок сейфа успешно взломан! Все 10 пар найдены!
+                                </div>
+                                <button type="button" id="checkBtn2" class="btn-check" style="width: 100%; padding: 12px; font-size: 1.1rem;">
+                                    Продолжить квест → Перейти к заданию 3
+                                </button>
+                            </div>
+
+                            
+                        </div>
+                    </div>
+
+                    <!-- Задание 3 -->
+                    <div class="quest-step" id="step3">
+                        <div class="quest-box">
+                            <h4>Задание 3</h4>
+                            <p class="quest-question">Какие бизнесы есть у семьи? (Выберите все правильные варианты)</p>
+                            <div id="business-options" class="options-grid">
+                                <button type="button" class="option-btn" data-val="Заправка">Заправка</button>
+                                <button type="button" class="option-btn" data-val="Амунка">Амунка</button>
+                                <button type="button" class="option-btn" data-val="Пятерик">Пятерик</button>
+                                <button type="button" class="option-btn" data-val="ББ">ББ</button>
+                                <button type="button" class="option-btn" data-val="Кинотеатр">Кинотеатр</button>
+                            </div>
+                            <div class="quest-input-group">
+                                <button type="button" id="checkBtn3" class="btn-check">Проверить выбор</button>
+                            </div>
+                            <div class="hint-container">
+                                <button type="button" class="btn-hint" id="hintBtn3">💡 Взять подсказку</button>
+                                <div class="hint-text" id="hintText3" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Задание 4 -->
+                    <div class="quest-step" id="step4">
+                        <div class="quest-box">
+                            <h4>Задание 4</h4>
+                            <p class="quest-question">Кто стоит во главе семьи?</p>
+                            <div class="quest-input-group">
+                                <input type="text" id="answer-4" placeholder="Введите ответ">
+                                <button type="button" id="checkBtn4" class="btn-check">Проверить</button>
+                            </div>
+                            <div class="hint-container">
+                                <button type="button" class="btn-hint" id="hintBtn4">💡 Взять подсказку</button>
+                                <div class="hint-text" id="hintText4" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Задание 5 -->
+                    <div class="quest-step" id="step5">
+                        <div class="quest-box">
+                            <h4>Задание 5: Интерактивное</h4>
+                            <p class="quest-question">Свяжитесь с Jirobasik в Telegram или Discord, чтобы он дал вам ответ на этот вопрос.</p>
+                            <div class="interactive-info">
+                                💬 <strong>Discord:</strong> <code>Jirobasik</code> (Геркулес Милонов ID: 264-013)
+                            </div>
+                            <div class="quest-input-group">
+                                <input type="text" id="answer-5" placeholder="Введите полученный ответ">
+                                <button type="button" id="checkBtn5" class="btn-check">Проверить</button>
+                            </div>
+                            <div class="hint-container">
+                                <button type="button" class="btn-hint" id="hintBtn5">💡 Взять подсказку</button>
+                                <div class="hint-text" id="hintText5" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Задание 6 -->
+                    <div class="quest-step" id="step6">
+                        <div class="quest-box">
+                            <h4>Задание 6</h4>
+                            <p class="quest-question">Подпольная кличка Александра Милонова 859-200?</p>
+                            <div class="quest-input-group">
+                                <input type="text" id="answer-6" placeholder="Введите ответ">
+                                <button type="button" id="checkBtn6" class="btn-check">Проверить</button>
+                            </div>
+                            <div class="hint-container">
+                                <button type="button" class="btn-hint" id="hintBtn6">💡 Взять подсказку</button>
+                                <div class="hint-text" id="hintText6" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Задание 7 -->
+                    <div class="quest-step" id="step7">
+                        <div class="quest-box">
+                            <h4>Задание 7</h4>
+                            <p class="quest-question">Какой тег в Discord использует семья Милоновых?</p>
+                            <div class="quest-input-group">
+                                <input type="text" id="answer-7" placeholder="Введите ответ">
+                                <button type="button" id="checkBtn7" class="btn-check">Проверить</button>
+                            </div>
+                            <div class="hint-container">
+                                <button type="button" class="btn-hint" id="hintBtn7">💡 Взять подсказку</button>
+                                <div class="hint-text" id="hintText7" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Задание 8 -->
+                    <div class="quest-step" id="step8">
+                        <div class="quest-box">
+                            <h4>Задание 8</h4>
+                            <p class="quest-question">Из какой фракции семья перешла в ВС РФ?</p>
+                            <div class="quest-input-group">
+                                <input type="text" id="answer-8" placeholder="Введите ответ">
+                                <button type="button" id="checkBtn8" class="btn-check">Проверить</button>
+                            </div>
+                            <div class="hint-container">
+                                <button type="button" class="btn-hint" id="hintBtn8">💡 Взять подсказку</button>
+                                <div class="hint-text" id="hintText8" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Задание 9: Мини-игра "Сетка проводки зажигания" -->
+                    <div class="quest-step" id="step9">
+                        <div class="quest-box">
+                            <h4>Задание 9: Мини-игра</h4>
+                            <p class="quest-question">Соедините линиями все 10 пар одинаковых цифр на плате! Нажмите на любую цифру, чтобы начать вести провод к её паре. Провода <strong>не должны пересекаться</strong>. Будьте осторожны: если провода пересекутся или замкнутся на чужую цифру, произойдёт короткое замыкание и <strong>все соединённые провода сбросятся</strong>!</p>
+
+                            <div class="minigame-status-bar" style="justify-content: space-between; align-items: center;">
+                                <span id="gridWiresCount" style="font-weight: 700; color: #856404;">Подключено проводов: 0 из 10</span>
+                                <span id="gridCurrentWireInfo" style="font-weight: 700; color: #e74c3c;">Текущий: 🔴 Провод 1 (Питание)</span>
+                                <button type="button" id="gridResetCurrentWireBtn" class="btn-minigame-reset" title="Сбросить текущий провод к старту">↩ Сбросить провод</button>
+                            </div>
+
+                            <div id="gridCircuitAlert" class="grid-circuit-alert" style="display: none;"></div>
+
+                            <div class="circuit-grid-wrapper">
+                                <div id="circuitGridBoard" class="circuit-grid-board">
+                                    <!-- Сетка 12x12 генерируется динамически -->
+                                </div>
+                            </div>
+
+                            <div id="gridWiresSuccessBox" class="minigame-success-box" style="display: none; margin-top: 1.25rem;">
+                                <div style="background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; border-radius: 6px; padding: 12px; margin-bottom: 0.75rem; font-weight: bold; font-size: 1.05rem; text-align: center;">
+                                    ⚡ Все 10 проводов успешно проведены через плату! Двигатель взревел — кортеж Милоновых готов мчать на Патрики!
+                                </div>
+                                <button type="button" id="checkBtn9" class="btn-check" style="width: 100%; padding: 12px; font-size: 1.1rem;">
+                                    Продолжить квест → Перейти к заданию 10
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Задание 10 -->
+                    <div class="quest-step" id="step10">
+                        <div class="quest-box">
+                            <h4>Задание 10</h4>
+                            <p class="quest-question">У кого в Discord на аватарке стоит белый котенок (Только имя)?</p>
+                            <div class="quest-input-group">
+                                <input type="text" id="answer-10" placeholder="Введите имя">
+                                <button type="button" id="checkBtn10" class="btn-check">Проверить</button>
+                            </div>
+                            <div class="hint-container">
+                                <button type="button" class="btn-hint" id="hintBtn10">💡 Взять подсказку</button>
+                                <div class="hint-text" id="hintText10" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Финал квеста -->
+                    <div id="quest-completed" class="quest-completed-card">
+                        <h3>🎉 Поздравляем!</h3>
+                        <p>Вы успешно завершили все 10 заданий «Квеста 1»!</p>
+                        <div class="time-badge">Время: <span id="finalTimeDisplay">0:00</span></div>
+                        <p>Ваш лучший результат зафиксирован в таблице рейтинга семьи.</p>
+                        <div class="completed-actions">
+                            <a href="rating.html" class="btn">Посмотреть рейтинг</a>
+                            <button type="button" id="restartQuestBtn" class="btn-back">Пройти заново</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Милоновы</p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="../js/script.js"></script>
+</body>
+</html>
