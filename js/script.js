@@ -1892,6 +1892,20 @@ window.onload = function () {
     el('adminImportBackupBtn')?.addEventListener('click', importSiteBackup);
     el('adminFactoryResetBtn')?.addEventListener('click', factoryResetSite);
 
+    el('adminSyncLocalToCloudBtn')?.addEventListener('click', async () => {
+        if (typeof fbMigrateLocalDataToCloud === 'function') {
+            const btn = el('adminSyncLocalToCloudBtn');
+            if (btn) btn.textContent = '⏳ Синхронизация...';
+            const res = await fbMigrateLocalDataToCloud();
+            if (btn) btn.textContent = '☁️ Подтянуть локальную базу в облако';
+            renderAdminUsersTable();
+            renderAdminRatingTable();
+            alert(`Синхронизация завершена!\nВыгружено в облако: ${res.migratedUsers} новых пользователей, ${res.migratedRatings} рекордов.`);
+        } else {
+            alert('Firebase не подключен.');
+        }
+    });
+
 
     // Кнопки проверки и подсказок для каждого из 10 заданий
     for (let i = 1; i <= TOTAL_STEPS; i++) {

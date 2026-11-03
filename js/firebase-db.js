@@ -320,3 +320,59 @@ async function fbSaveSettings(updates) {
     return false;
   }
 }
+
+/**
+ * Автоматически подтягивает и выгружает всю старую локальную базу (users и ratings)
+ * из браузера (localStorage) в облако Firestore.
+ */
+async function fbMigrateLocalDataToCloud() {
+  if (!fbAvailable || !db) return { migratedUsers: 0, migratedRatings: 0 };
+  let migratedUsers = 0;
+  let migratedRatings = 0;
+  try {
+    // 1. Локальные пользователи
+    const localUsers = JSON.parse(localStorage.getItem('users') || '[]');
+    if (Array.isArray(localUsers) && localUsers.length > 0) {
+      for (const u of localUsers) {
+        if (!u || !u.userId) continue;
+        const docRef = db.collection('users').doc(u.userId);
+        const snap = await docRef.get();
+        if (!snap.exists) {
+          await docRef.set(u, { merge: true });
+          migratedUsers++;
+        }
+      }
+    }
+
+    // 2. Локальный рейтинг
+    const localRatings = JSON.parse(localStorage.getItem('ratings') || '[]');
+    if (Array.isArray(localRatings) && localRatings.length > 0) {
+      for (const r of localRatings) {
+        if (!r || !r.username) continue;
+        const docId = r.username.replace(/[\/\s#?]+/g, '_').substring(0, 80);
+        const docRef = db.collection('ratings').doc(docId);
+        const snap = await docRef.get();
+        if (!snap.exists) {
+          await docRef.set(r, { merge: true });
+          migratedRatings++;
+        }
+      }
+    }
+
+    // 3. Скачиваем объединённый актуальный список обратно в кэш
+    await fbGetUsers();
+    await fbGetRatings();
+    await fbGetSettings();
+    console.log(`[Firebase Migration] Миграция завершена. Новых пользователей в облаке: ${migratedUsers}, рекордов: ${migratedRatings}`);
+  } catch (err) {
+    console.warn('[Firebase Migration] Ошибка миграции:', err);
+  }
+  return { migratedUsers, migratedRatings };
+}
+
+// Запуск фоновой синхронизации локальной базы с облаком при загрузке скрипта
+if (fbAvailable && db) {
+  setTimeout(() => {
+    fbMigrateLocalDataToCloud();
+  }, 1000);
+}
