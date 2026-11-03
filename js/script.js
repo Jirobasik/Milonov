@@ -87,16 +87,18 @@ function getUniqueRatings() {
     return unique;
 }
 
-function updateRatingTable() {
+async function updateRatingTable() {
     const tbody = el('ratingTableBody');
     if (!tbody) return;
 
     tbody.innerHTML = '';
-    // Получаем уникальный список без дубликатов
-    const ratings = getUniqueRatings();
-
-    // Синхронизируем очищенный список обратно в localStorage
-    localStorage.setItem('ratings', JSON.stringify(ratings));
+    // Получаем уникальный список из Firebase или локального хранилища
+    let ratings = [];
+    if (typeof fbGetRatings === 'function') {
+        ratings = await fbGetRatings();
+    } else {
+        ratings = getUniqueRatings();
+    }
 
     ratings.forEach((rating, index) => {
         const row = document.createElement('tr');
@@ -112,6 +114,9 @@ function updateRatingTable() {
 }
 
 function addToRatingTable(username, time) {
+    if (typeof fbAddRatingRecord === 'function') {
+        fbAddRatingRecord(username, time);
+    }
     const ratings = getUniqueRatings();
     const existingIndex = ratings.findIndex(r => r.username === username);
 
@@ -185,8 +190,14 @@ async function registerUser() {
                     (firstName === 'Александр' && lastName === 'Милонов' && userId === '859-200') ||
                     (firstName === 'Геркулес' && lastName === 'Милонов' && userId === '264-013');
 
-    // Список всех зарегистрированных пользователей
-    const users = JSON.parse(localStorage.getItem('users')) || [];
+    // Список всех зарегистрированных пользователей (синхронизируем с Firebase)
+    let users = [];
+    if (typeof fbGetUsers === 'function') {
+        users = await fbGetUsers();
+    } else {
+        users = JSON.parse(localStorage.getItem('users')) || [];
+    }
+
     const exists = users.find(u =>
         u.email?.toLowerCase() === email.toLowerCase() ||
         u.userId === userId
@@ -207,10 +218,16 @@ async function registerUser() {
         userId,
         email,
         passwordHash,
-        isAdmin
+        isAdmin,
+        createdAt: new Date().toISOString()
     };
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
+
+    if (typeof fbSaveUser === 'function') {
+        await fbSaveUser(newUser);
+    } else {
+        users.push(newUser);
+        localStorage.setItem('users', JSON.stringify(users));
+    }
 
     // Установка активной сессии
     localStorage.setItem('username',     fullName);
@@ -288,8 +305,13 @@ async function loginUser() {
         return;
     }
 
-    // 1. Поиск по общему списку пользователей
-    const users = JSON.parse(localStorage.getItem('users')) || [];
+    // 1. Поиск по общему списку пользователей (синхронизируем с Firebase)
+    let users = [];
+    if (typeof fbGetUsers === 'function') {
+        users = await fbGetUsers();
+    } else {
+        users = JSON.parse(localStorage.getItem('users')) || [];
+    }
     let matchedUser = users.find(u =>
         u.email?.toLowerCase() === loginInput.toLowerCase() ||
         u.userId?.toLowerCase() === loginInput.toLowerCase() ||
@@ -1181,13 +1203,30 @@ function initAdminPanel() {
 
 // ─── Рейтинг: админ-управление ───────────────────────────────────────────────
 
-function renderAdminRatingTable() {
+let fbRatingsListenerActive = false;
+
+async function renderAdminRatingTable() {
     const tbody = el('adminRatingTableBody');
     if (!tbody) return;
+
+    if (!fbRatingsListenerActive && typeof fbListenRatings === 'function') {
+        fbRatingsListenerActive = true;
+        fbListenRatings(() => {
+            renderAdminRatingTable();
+            updateRatingTable();
+        });
+    }
+
     tbody.innerHTML = '';
 
-    const ratings = getUniqueRatings();
-    if (ratings.length === 0) {
+    let ratings = [];
+    if (typeof fbGetRatings === 'function') {
+        ratings = await fbGetRatings();
+    } else {
+        ratings = getUniqueRatings();
+    }
+
+    if (!ratings || ratings.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" class="text-muted text-center">Рейтинг пуст</td></tr>';
         return;
     }
@@ -1210,6 +1249,9 @@ function renderAdminRatingTable() {
                 let currentRatings = getUniqueRatings();
                 currentRatings = currentRatings.filter(r => r.username !== userToDelete);
                 localStorage.setItem('ratings', JSON.stringify(currentRatings));
+                if (typeof fbDeleteRatingRecord === 'function') {
+                    fbDeleteRatingRecord(userToDelete);
+                }
                 renderAdminRatingTable();
                 updateRatingTable();
                 alert('Запись удалена.');
@@ -1239,6 +1281,9 @@ function adminAddRatingRecord() {
 function clearAdminRating() {
     if (!confirm('ВНИМАНИЕ: Вы уверены, что хотите полностью очистить таблицу рейтинга? Все рекорды будут удалены.')) return;
     localStorage.removeItem('ratings');
+    if (typeof fbClearAllRatings === 'function') {
+        fbClearAllRatings();
+    }
     renderAdminRatingTable();
     updateRatingTable();
     alert('Таблица рейтинга полностью очищена.');
@@ -1246,15 +1291,33 @@ function clearAdminRating() {
 
 // ─── Пользователи: админ-управление ─────────────────────────────────────────
 
-function renderAdminUsersTable() {
+let fbUsersListenerActive = false;
+
+async function renderAdminUsersTable() {
     const tbody = el('adminUsersTableBody');
     if (!tbody) return;
-    tbody.innerHTML = '';
 
-    const users = JSON.parse(localStorage.getItem('users')) || [];
+    // Синхронизируем из облака Firebase
+    let users = [];
+    if (typeof fbGetUsers === 'function') {
+        users = await fbGetUsers();
+    } else {
+        users = JSON.parse(localStorage.getItem('users')) || [];
+    }
+
+    if (!fbUsersListenerActive && typeof fbListenUsers === 'function') {
+        fbUsersListenerActive = true;
+        fbListenUsers((freshUsers) => {
+            if (freshUsers && freshUsers.length) {
+                renderAdminUsersTable();
+            }
+        });
+    }
+
+    tbody.innerHTML = '';
     const currentUserId = localStorage.getItem('userId');
 
-    if (users.length === 0) {
+    if (!users || users.length === 0) {
         tbody.innerHTML = '<tr><td colspan="6" class="text-muted text-center">Нет зарегистрированных пользователей</td></tr>';
         return;
     }
@@ -1316,6 +1379,10 @@ function toggleAdminRole(uid) {
     targetUser.isAdmin = !targetUser.isAdmin;
     localStorage.setItem('users', JSON.stringify(users));
 
+    if (typeof fbUpdateUserFields === 'function') {
+        fbUpdateUserFields(uid, { isAdmin: targetUser.isAdmin });
+    }
+
     const currentUserId = localStorage.getItem('userId');
     if (currentUserId === uid) {
         localStorage.setItem('isAdmin', targetUser.isAdmin ? 'true' : 'false');
@@ -1336,6 +1403,11 @@ function toggleBanUser(uid) {
 
     targetUser.isBanned = !targetUser.isBanned;
     localStorage.setItem('users', JSON.stringify(users));
+
+    if (typeof fbUpdateUserFields === 'function') {
+        fbUpdateUserFields(uid, { isBanned: targetUser.isBanned });
+    }
+
     renderAdminUsersTable();
     alert(`Пользователь ${targetUser.username} ${targetUser.isBanned ? 'ЗАБЛОКИРОВАН 🚫' : 'РАЗБЛОКИРОВАН ✅'}.`);
 }
@@ -1352,6 +1424,9 @@ async function resetUserPassword(uid) {
     if (confirm(`Сбросить пароль пользователя "${targetUser.username}" на стандартный временный "123456"?`)) {
         targetUser.passwordHash = await hashString('123456');
         localStorage.setItem('users', JSON.stringify(users));
+        if (typeof fbUpdateUserFields === 'function') {
+            fbUpdateUserFields(uid, { passwordHash: targetUser.passwordHash });
+        }
         alert(`Пароль для пользователя "${targetUser.username}" успешно сброшен на "123456".`);
     }
 }
@@ -1365,6 +1440,9 @@ function deleteUser(uid) {
         let users = JSON.parse(localStorage.getItem('users')) || [];
         users = users.filter(u => u.userId !== uid);
         localStorage.setItem('users', JSON.stringify(users));
+        if (typeof fbDeleteUser === 'function') {
+            fbDeleteUser(uid);
+        }
         renderAdminUsersTable();
         alert('Пользователь удалён.');
     }
@@ -1396,6 +1474,10 @@ function grantAdminByInput() {
 
     targetUser.isAdmin = true;
     localStorage.setItem('users', JSON.stringify(users));
+
+    if (typeof fbUpdateUserFields === 'function') {
+        fbUpdateUserFields(targetUser.userId, { isAdmin: true });
+    }
 
     const currentUserId = localStorage.getItem('userId');
     if (currentUserId === targetUser.userId) {
@@ -1703,7 +1785,23 @@ window.onload = function () {
         return;
     }
 
-        // Отрисовка динамического текста главной страницы (если отредактирован администратором)
+    // Синхронизация глобальных настроек и базы пользователей из Firebase
+    if (typeof fbGetSettings === 'function') {
+        fbGetSettings().then(() => {
+            const freshHomeTitle = localStorage.getItem('siteWelcomeTitle');
+            const freshHomeText  = localStorage.getItem('siteWelcomeText');
+            if (freshHomeTitle && el('homeWelcomeTitle')) el('homeWelcomeTitle').textContent = freshHomeTitle;
+            if (freshHomeText && el('homeWelcomeText')) {
+                el('homeWelcomeText').textContent = freshHomeText;
+                el('homeWelcomeText').style.display = 'block';
+            }
+        });
+    }
+    if (typeof fbGetUsers === 'function') {
+        fbGetUsers();
+    }
+
+    // Отрисовка динамического текста главной страницы (если отредактирован администратором)
     const customHomeTitle = localStorage.getItem('siteWelcomeTitle');
     const customHomeText  = localStorage.getItem('siteWelcomeText');
     if (customHomeTitle && el('homeWelcomeTitle')) {
