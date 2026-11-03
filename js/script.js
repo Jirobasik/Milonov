@@ -1099,7 +1099,7 @@ function updateHeaderAvatars() {
 const DEFAULT_AVATAR = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23ffd700'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23222'/%3E%3Cpath d='M20 85 C20 62 34 58 50 58 C66 58 80 62 80 85 Z' fill='%23222'/%3E%3C/svg%3E";
 
 function initProfilePage() {
-    const username = localStorage.getItem('username') || '';
+    let username = localStorage.getItem('username') || '';
     if (!username) {
         const path = window.location.pathname;
         window.location.href = path.includes('/pages/') ? 'register.html' : 'pages/register.html';
@@ -1110,6 +1110,25 @@ function initProfilePage() {
     let lastName  = localStorage.getItem('lastName') || '';
     let userId    = localStorage.getItem('userId') || '';
     const email   = localStorage.getItem('email') || '';
+
+    // Автоматическое исправление кодировки для основателей
+    if (userId === '264-013' || username.includes('?')) {
+        if (userId === '264-013') {
+            firstName = 'Геркулес';
+            lastName  = 'Милонов';
+            username  = 'Геркулес Милонов - 264-013';
+            localStorage.setItem('firstName', firstName);
+            localStorage.setItem('lastName', lastName);
+            localStorage.setItem('username', username);
+        } else if (userId === '859-200') {
+            firstName = 'Александр';
+            lastName  = 'Милонов';
+            username  = 'Александр Милонов - 859-200';
+            localStorage.setItem('firstName', firstName);
+            localStorage.setItem('lastName', lastName);
+            localStorage.setItem('username', username);
+        }
+    }
 
     if (!firstName || !lastName) {
         const parts = username.split(' - ');
