@@ -62,6 +62,18 @@
             font-weight: 700;
             text-transform: uppercase;
         }
+        .category-badge.status-active {
+            background: #28a745;
+            color: #fff;
+        }
+        .category-badge.status-paused {
+            background: #ffc107;
+            color: #222;
+        }
+        .category-badge.status-maintenance {
+            background: #dc3545;
+            color: #fff;
+        }
         .category-desc {
             color: #444;
             font-size: 1.05rem;
@@ -578,14 +590,15 @@
                     <div class="event-card-header">
                         <div class="event-card-title">
                             <h3>Квест 1</h3>
-                            <span class="category-badge">Активен</span>
+                            <span class="category-badge" id="questStatusBadge">Активен</span>
                         </div>
                     </div>
-                    <p class="category-desc">
+                    <p class="category-desc" id="questDescText">
                         Испытание для участников семьи: 10 заданий на знание семьи Милоновых, логику и внимательность.
                         Пройдите все вопросы на время и зафиксируйте свой рекорд в таблице рейтинга!
                         Доступно 3 подсказки на время прохождения.
                     </p>
+                    <div id="questStatusNotice" style="display: none; margin-bottom: 12px; padding: 10px 14px; border-radius: 6px; font-weight: 600;"></div>
                     <button type="button" id="openQuestBtn" class="event-open-btn">
                         🎮 Начать «Квест 1»
                     </button>
@@ -601,7 +614,7 @@
                             ⚡ Пропустить шаг (Админ)
                         </button>
                         <span id="hintsRemainingBadge" class="hints-badge">💡 Подсказок: 3/3</span>
-                        <span class="category-badge">«Квест 1» активен</span>
+                        <span class="category-badge" id="questTopStatusBadge">«Квест 1» активен</span>
                     </div>
                 </div>
 

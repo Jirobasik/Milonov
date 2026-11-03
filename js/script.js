@@ -1030,7 +1030,106 @@ function updateProgressBar(isComplete = false) {
 
 // ─── Управление отображением квеста ──────────────────────────────────────────
 
+function renderQuestStatusUI() {
+    const status = localStorage.getItem('questStatus') || 'active';
+    const badge = el('questStatusBadge');
+    const topBadge = el('questTopStatusBadge');
+    const btn = el('openQuestBtn');
+    const notice = el('questStatusNotice');
+    const isAdmin = isCurrentAdmin();
+
+    if (!badge && !btn) return;
+
+    if (badge) {
+        badge.classList.remove('status-active', 'status-paused', 'status-maintenance');
+    }
+
+    if (status === 'maintenance') {
+        if (badge) {
+            badge.textContent = '🔴 Технические работы';
+            badge.classList.add('status-maintenance');
+        }
+        if (topBadge) topBadge.textContent = '🔴 Тех. работы (Админ-режим)';
+        if (notice) {
+            notice.style.display = 'block';
+            notice.style.background = '#f8d7da';
+            notice.style.color = '#721c24';
+            notice.style.border = '1px solid #f5c6cb';
+            notice.innerHTML = isAdmin 
+                ? '⚠️ <strong>Квест на тех. работах.</strong> Для обычных участников доступ закрыт, но вам он доступен как администратору для проверки.'
+                : '🛠️ <strong>Внимание!</strong> Ведутся технические работы и обновление заданий. Квест временно закрыт для прохождения.';
+        }
+        if (btn) {
+            if (isAdmin) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                btn.innerHTML = '⚡ Запустить «Квест 1» (Админ-доступ)';
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+                btn.style.cursor = 'not-allowed';
+                btn.innerHTML = '🔒 Идут технические работы';
+            }
+        }
+    } else if (status === 'paused') {
+        if (badge) {
+            badge.textContent = '🟡 Приостановлен';
+            badge.classList.add('status-paused');
+        }
+        if (topBadge) topBadge.textContent = '🟡 Пауза (Админ-режим)';
+        if (notice) {
+            notice.style.display = 'block';
+            notice.style.background = '#fff3cd';
+            notice.style.color = '#856404';
+            notice.style.border = '1px solid #ffeeba';
+            notice.innerHTML = isAdmin 
+                ? '⚠️ <strong>Квест приостановлен.</strong> Доступ открыт для проверки администраторами.'
+                : '⏸️ <strong>Внимание!</strong> Ивент временно приостановлен организаторами семьи. Ожидайте возобновления!';
+        }
+        if (btn) {
+            if (isAdmin) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                btn.innerHTML = '⚡ Запустить «Квест 1» (Админ-доступ)';
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+                btn.style.cursor = 'not-allowed';
+                btn.innerHTML = '⏸️ Ивент временно на паузе';
+            }
+        }
+    } else {
+        // active
+        if (badge) {
+            badge.textContent = '🟢 Активен';
+            badge.classList.add('status-active');
+        }
+        if (topBadge) topBadge.textContent = '«Квест 1» активен';
+        if (notice) notice.style.display = 'none';
+        if (btn) {
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+            btn.innerHTML = '🎮 Начать «Квест 1»';
+        }
+    }
+}
+
 function openQuest() {
+    const status = localStorage.getItem('questStatus') || 'active';
+    const isAdmin = isCurrentAdmin();
+
+    if (status !== 'active' && !isAdmin) {
+        if (status === 'maintenance') {
+            alert('Квест временно закрыт на технические работы. Пожалуйста, зайдите позже.');
+        } else {
+            alert('Квест временно приостановлен организаторами.');
+        }
+        return;
+    }
+
     const list = el('eventsList');
     const container = el('quest-container');
     if (list) list.style.display = 'none';
@@ -1212,7 +1311,17 @@ function initAdminPanel() {
     if (el('adminBannerActiveCheckbox')) el('adminBannerActiveCheckbox').checked = localStorage.getItem('siteGlobalAlertActive') === 'true';
 
     // 4. Загрузка настроек квеста
-    if (el('adminQuestStatusSelect')) el('adminQuestStatusSelect').value = localStorage.getItem('questStatus') || 'active';
+    const currentQStatus = localStorage.getItem('questStatus') || 'active';
+    const statusSelect = el('adminQuestStatusSelect');
+    if (statusSelect) {
+        statusSelect.value = currentQStatus;
+        statusSelect.onchange = function () {
+            localStorage.setItem('questStatus', statusSelect.value);
+            if (typeof fbSaveSettings === 'function') {
+                fbSaveSettings({ questStatus: statusSelect.value });
+            }
+        };
+    }
     if (el('adminQuestHintsInput')) el('adminQuestHintsInput').value = localStorage.getItem('questMaxHints') || '3';
 
     // 5. Отрисовка таблиц рейтинга и пользователей
@@ -1555,14 +1664,26 @@ function renderGlobalFamilyAlert() {
 
 // ─── Управление квестом ──────────────────────────────────────────────────────
 
-function saveAdminQuestSettings() {
+async function saveAdminQuestSettings() {
     const status = el('adminQuestStatusSelect')?.value || 'active';
     const hints = el('adminQuestHintsInput')?.value || '3';
 
     localStorage.setItem('questStatus', status);
     localStorage.setItem('questMaxHints', hints);
 
-    alert('Настройки квеста успешно сохранены!');
+    if (typeof fbSaveSettings === 'function') {
+        await fbSaveSettings({ questStatus: status, questMaxHints: hints });
+    }
+
+    renderQuestStatusUI();
+
+    const statusTitle = status === 'active' 
+        ? '🟢 Активен (доступен всем)' 
+        : status === 'paused' 
+            ? '🟡 Приостановлен (пауза)' 
+            : '🔴 Технические работы';
+
+    alert(`Настройки квеста успешно сохранены в облаке!\nТекущий статус: ${statusTitle}`);
 }
 
 // ─── Редактор контента страниц (CMS) ─────────────────────────────────────────
@@ -1814,11 +1935,18 @@ window.onload = function () {
                 el('homeWelcomeText').textContent = freshHomeText;
                 el('homeWelcomeText').style.display = 'block';
             }
+            renderQuestStatusUI();
+            const savedQStatus = localStorage.getItem('questStatus');
+            if (savedQStatus && el('adminQuestStatusSelect')) {
+                el('adminQuestStatusSelect').value = savedQStatus;
+            }
         });
     }
     if (typeof fbGetUsers === 'function') {
         fbGetUsers();
     }
+
+    renderQuestStatusUI();
 
     // Отрисовка динамического текста главной страницы (если отредактирован администратором)
     const customHomeTitle = localStorage.getItem('siteWelcomeTitle');
