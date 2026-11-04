@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ru" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self';
+                   script-src 'self' https://cdn.jsdelivr.net https://www.gstatic.com;
+                   style-src  'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline';
+                   font-src   'self' https://cdn.jsdelivr.net https://fonts.gstatic.com data:;
+                   connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com;
+                   img-src    'self' data: https:;
+                   object-src 'none';">
+    <meta http-equiv="Referrer-Policy" content="same-origin">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <title>Мафия — Милоновы</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../css/styles.css">
+    <style>
+        .chat-box {
+            height: 280px;
+            overflow-y: auto;
+            background-color: var(--bg-base);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 10px;
+        }
+        .host-log-box {
+            height: 180px;
+            overflow-y: auto;
+            background-color: var(--bg-base);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 10px;
+        }
+        .chat-tab-btn {
+            background-color: var(--bg-base);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-family: var(--font-mono);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .chat-tab-btn.active {
+            color: #ffffff;
+            background-color: var(--bg-subtle);
+            border-color: #ffffff;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="container d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+                <a href="../index.html" class="d-flex align-items-center gap-2 text-decoration-none">
+                    <span class="brand-badge">M</span>
+                    <span class="brand-title">МИЛОНОВЫ</span>
+                </a>
+                <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle font-mono d-none d-sm-inline-block">SYS.v1.0</span>
+            </div>
+            
+            <nav class="d-none d-md-block">
+                <ul class="site-nav">
+                    <li><a href="../index.html">Главная</a></li>
+                    <li><a href="quest.html" class="active">Ивенты</a></li>
+                    <li><a href="rating.html">Рейтинг</a></li>
+                    <li><a href="rules.html">Регламент</a></li>
+                    <li><a href="about.html">О системе</a></li>
+                    <li><a href="contact.html">Контакты</a></li>
+                </ul>
+            </nav>
+
+            <div>
+                <a href="profile.html" class="user-nav-badge" title="Личный кабинет">
+                    <img class="header-avatar userHeaderAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%2327272a'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23a1a1aa'/%3E%3Cpath d='M20 85 C20 62 34 58 50 58 C66 58 80 62 80 85 Z' fill='%23a1a1aa'/%3E%3C/svg%3E" alt="Avatar">
+                    <span class="d-none d-sm-inline">Профиль</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Мобильная навигация -->
+        <div class="container d-md-none pt-2 mt-2 border-top border-secondary-subtle">
+            <ul class="site-nav flex-wrap justify-content-center">
+                <li><a href="../index.html">Главная</a></li>
+                <li><a href="quest.html" class="active">Ивенты</a></li>
+                <li><a href="rating.html">Рейтинг</a></li>
+                <li><a href="rules.html">Регламент</a></li>
+                <li><a href="contact.html">Контакты</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <main class="container my-5 flex-grow-1">
+        <!-- SCREEN 1: BROWSER & ROOM CREATION -->
+        <div id="screenBrowser" class="blur-fade">
+            <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+                <div>
+                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 mb-2 rounded-pill bg-body-tertiary border border-secondary-subtle font-mono text-secondary small">
+                        <span>ПРОТОКОЛ 02 · ИНТЕРАКТИВНАЯ ИГРА</span>
+                    </div>
+                    <h1 class="h3 fw-bold mb-1">Мафия: Онлайн-сессия</h1>
+                    <p class="text-secondary small mb-0">Сетевой протокол для закрытых внутрисемейных партий с ведущим и таймерами фаз.</p>
+                </div>
+                <a href="quest.html" class="btn-shiny btn-sm">
+                    <i class="bi bi-arrow-left"></i> К списку ивентов
+                </a>
+            </div>
+
+            <div class="bento-grid mb-4">
+                <!-- Create Room Bento Card -->
+                <div class="bento-col-6">
+                    <div class="spotlight-card h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono">ВЕДУЩИЙ</span>
+                            <i class="bi bi-person-fill-gear text-secondary fs-5"></i>
+                        </div>
+                        <h2 class="h5 fw-semibold mb-2">Создать новую комнату</h2>
+                        <p class="text-secondary small mb-3">Вы станете ведущим сессии с доступом к управлению фазами и журналу ночных событий.</p>
+
+                        <!-- Settings -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-4">
+                                <label class="form-label" for="settingDiscussionTime">День (сек)</label>
+                                <input type="number" id="settingDiscussionTime" class="form-control font-mono form-control-sm" value="90" min="30" max="300">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label" for="settingVotingTime">Голос. (сек)</label>
+                                <input type="number" id="settingVotingTime" class="form-control font-mono form-control-sm" value="45" min="20" max="180">
+                            </div>
+                            <div class="col-4">
+                                <label class="form-label" for="settingNightTime">Ночь (сек)</label>
+                                <input type="number" id="settingNightTime" class="form-control font-mono form-control-sm" value="45" min="20" max="180">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-label mb-2">Дополнительные роли:</div>
+                            <div class="d-flex flex-column gap-2 small text-secondary">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="roleManiacCheckbox">
+                                    <label class="form-check-label" for="roleManiacCheckbox">Маньяк (Одиночный стрелок)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="roleCourtesanCheckbox">
+                                    <label class="form-check-label" for="roleCourtesanCheckbox">Любовница (Блокировка действий)</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="roleJournalistCheckbox">
+                                    <label class="form-check-label" for="roleJournalistCheckbox">Журналист (Сравнение команд)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn-shiny btn-shiny-primary w-100 py-2" onclick="createMafiaRoom()">
+                            <i class="bi bi-plus-circle"></i> Сформировать комнату
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Join by Code Bento Card -->
+                <div class="bento-col-6">
+                    <div class="spotlight-card h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono">УЧАСТНИК</span>
+                                <i class="bi bi-box-arrow-in-right text-secondary fs-5"></i>
+                            </div>
+                            <h2 class="h5 fw-semibold mb-2">Подключиться по коду</h2>
+                            <p class="text-secondary small mb-3">Введите 6-значный код комнаты, полученный от ведущего.</p>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="joinRoomInput">Код комнаты</label>
+                                <input type="text" id="joinRoomInput" class="form-control font-mono text-uppercase" placeholder="Например: MAF-782">
+                            </div>
+                            <button type="button" class="btn-shiny w-100 py-2 mb-4" onclick="joinMafiaRoom()">
+                                Войти в лобби
+                            </button>
+                        </div>
+
+                        <div>
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="font-mono small text-secondary">ОТКРЫТЫЕ СЕССИИ</span>
+                                <button type="button" class="btn btn-sm btn-link text-secondary text-decoration-none p-0" onclick="refreshRoomsList()">
+                                    <i class="bi bi-arrow-repeat"></i> Обновить
+                                </button>
+                            </div>
+                            <div id="activeRoomsList" class="row g-2"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SCREEN 2: ACTIVE ROOM VIEW -->
+        <div id="screenRoom" class="blur-fade d-none">
+            <!-- Top Room Bar -->
+            <div class="spotlight-card p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                    <span class="badge bg-secondary font-mono fs-6" id="currentRoomCodeDisplay">MAF-000</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary font-mono" onclick="navigator.clipboard.writeText(currentMafiaRoomId); alert('Код комнаты скопирован.');">
+                        <i class="bi bi-copy"></i> Копировать код
+                    </button>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn-shiny btn-shiny-danger btn-sm" onclick="leaveMafiaRoom()">
+                        <i class="bi bi-door-closed"></i> Покинуть комнату
+                    </button>
+                </div>
+            </div>
+
+            <!-- VIEW 1: LOBBY WAITING STAGE -->
+            <div id="viewLobbySection" class="spotlight-card mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                    <div>
+                        <h2 class="h5 fw-semibold mb-1">Лобби ожидания игроков</h2>
+                        <div class="text-secondary small">Для запуска сессии необходимо минимум 4 участника.</div>
+                    </div>
+                    <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono" id="lobbyPlayersCount">0 участников</span>
+                </div>
+
+                <div id="lobbyPlayersList" class="row g-2 mb-4"></div>
+
+                <div class="host-only-control pt-3 border-top border-secondary-subtle" style="display: none;">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="font-mono small text-secondary">УПРАВЛЕНИЕ СЕССИЕЙ ВЕДУЩЕГО</div>
+                        <button type="button" id="startGameBtn" class="btn-shiny btn-shiny-primary" onclick="startMafiaGame()">
+                            Раздать роли и начать партию
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 2: ACTIVE GAME ARENA -->
+            <div id="viewGameSection" class="d-none">
+                <!-- Phase Banner -->
+                <div class="spotlight-card p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1">
+                            <span id="gameRoundDisplay" class="font-mono small text-secondary">РАУНД 1</span>
+                            <span id="gamePhaseBadge" class="badge font-mono">НОЧЬ</span>
+                        </div>
+                        <div id="gamePhaseDesc" class="text-secondary small">Город засыпает.</div>
+                    </div>
+
+                    <!-- Host Phase Advancer -->
+                    <div class="host-only-control" style="display: none;">
+                        <button type="button" id="hostNextPhaseBtn" class="btn-shiny btn-shiny-primary btn-sm font-mono" onclick="hostAdvancePhase()">
+                            Завершить ночь → Начать день
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bento-grid mb-4">
+                    <!-- Left Column: Players Grid (8 cols) -->
+                    <div class="bento-col-8">
+                        <!-- Secret Role Card -->
+                        <div class="spotlight-card p-3 mb-3">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="font-mono text-secondary small">ВАША СЕКРЕТНАЯ КАРТА:</span>
+                                    <span id="myAliveBadge" class="badge bg-success-subtle text-success-emphasis font-mono">ЖИВ</span>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-secondary font-mono" onclick="toggleRoleCardVisibility()">
+                                    <i id="roleCardEyeIcon" class="bi bi-eye"></i> <span class="d-none d-sm-inline">Показать/скрыть</span>
+                                </button>
+                            </div>
+                            
+                            <div id="roleCardBody" class="mt-3 pt-3 border-top border-secondary-subtle" style="display: none;">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <h3 id="myRoleTitle" class="h5 fw-bold text-white mb-0">Мирный житель</h3>
+                                    <span id="myRoleTeam" class="font-mono small text-secondary">КОМАНДА: ГОРОД</span>
+                                </div>
+                                <p id="myRoleDesc" class="text-secondary small mb-0"></p>
+                            </div>
+                        </div>
+
+                        <!-- Player Seats Grid -->
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="font-mono small text-secondary">СПИСОК УЧАСТНИКОВ ЗА СТОЛОМ</span>
+                                <div id="skipVoteContainer" style="display: none;"></div>
+                            </div>
+                            <div id="gamePlayersGrid" class="row g-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Chat & Host Log (4 cols) -->
+                    <div class="bento-col-4">
+                        <!-- Chat Box -->
+                        <div class="spotlight-card p-3 mb-3">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <button type="button" class="chat-tab-btn active" id="chatTabGeneral" onclick="setChatChannel('general')">Общий эфир</button>
+                                <button type="button" class="chat-tab-btn" id="chatTabMafia" style="display: none;" onclick="setChatChannel('mafia')">Канал мафии</button>
+                            </div>
+                            <div id="chatMessagesBox" class="chat-box mb-2"></div>
+                            <div class="d-flex gap-2">
+                                <input type="text" id="chatInput" class="form-control form-control-sm font-mono" placeholder="Сообщение в эфир...">
+                                <button type="button" class="btn-shiny btn-sm" onclick="sendChatMessage()">
+                                    <i class="bi bi-send"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Host Log Console -->
+                        <div class="spotlight-card p-3 host-only-control" style="display: none;">
+                            <div class="font-mono small text-secondary mb-2">СЛУЖЕБНЫЙ ЖУРНАЛ ВЕДУЩЕГО</div>
+                            <div id="hostEventLogBox" class="host-log-box"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 3: GAME OVER SECTION -->
+            <div id="viewGameOverSection" class="spotlight-card text-center py-5 d-none">
+                <span class="badge bg-secondary font-mono px-3 py-1 mb-3">СЕССИЯ ЗАВЕРШЕНА</span>
+                <h2 id="gameOverTitle" class="display-6 fw-bold mb-2">Итоги партии</h2>
+                <p id="gameOverDesc" class="text-secondary small mb-4 max-w-2xl mx-auto"></p>
+
+                <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle mb-4 text-start">
+                    <div class="font-mono small text-secondary mb-2">РАСКРЫТИЕ РОЛЕЙ ВСЕХ УЧАСТНИКОВ:</div>
+                    <div id="gameOverRolesList" class="row g-2"></div>
+                </div>
+
+                <div class="d-flex gap-2 justify-content-center flex-wrap">
+                    <button type="button" id="hostRestartGameBtn" class="btn-shiny btn-shiny-primary px-4 py-2" onclick="hostRestartGame()">
+                        <i class="bi bi-arrow-clockwise"></i> Перезапустить лобби
+                    </button>
+                    <button type="button" class="btn-shiny px-4 py-2" onclick="leaveMafiaRoom()">
+                        <i class="bi bi-door-closed"></i> Вернуться в список комнат
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2 text-center text-sm-start font-mono small">
+            <div>&copy; 2026 MILONOV EVENT PLATFORM. Все права защищены.</div>
+            <div class="text-secondary">СЕТЕВОЙ ПРОТОКОЛ «МАФИЯ»</div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+    <script src="../js/firebase-db.js"></script>
+    <script src="../js/script.js"></script>
+    <script src="../js/mafia.js"></script>
+</body>
+</html>
