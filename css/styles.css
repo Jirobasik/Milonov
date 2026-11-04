@@ -634,3 +634,60 @@ footer.site-footer {
     color: #ffffff;
     font-weight: 600;
 }
+
+/* ─── Mafia In-Game Glass Toasts ─── */
+.mafia-toast {
+    position: relative;
+    background: rgba(18, 18, 22, 0.94);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-md);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+    max-width: 400px;
+    width: 100%;
+    margin-bottom: 0.75rem;
+    animation: toastSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    overflow: hidden;
+}
+
+.mafia-toast.toast-hiding {
+    opacity: 0;
+    transform: translateX(35px) scale(0.95);
+}
+
+.mafia-toast.toast-success {
+    border-left: 3px solid #10b981;
+}
+
+.mafia-toast.toast-danger,
+.mafia-toast.toast-error {
+    border-left: 3px solid #ef4444;
+}
+
+.mafia-toast.toast-warning {
+    border-left: 3px solid #f59e0b;
+}
+
+.mafia-toast.toast-info {
+    border-left: 3px solid #3b82f6;
+}
+
+.mafia-toast.toast-sheriff {
+    border-left: 3px solid #06b6d4;
+    background: linear-gradient(135deg, rgba(18, 18, 22, 0.96), rgba(6, 182, 212, 0.12));
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7), 0 0 20px rgba(6, 182, 212, 0.2);
+}
+
+@keyframes toastSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-16px) scale(0.94);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}

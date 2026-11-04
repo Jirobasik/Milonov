@@ -46,6 +46,65 @@ function playPhaseChangeSound(phase) {
     }
 }
 
+// ─── Внутриигровые уведомления (Красивые стеклянные тосты без alert) ─────────
+
+function showMafiaToast(type = 'info', title = '', message = '', durationMs = 4500) {
+    let container = document.getElementById('mafiaToastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'mafiaToastContainer';
+        container.className = 'toast-container position-fixed top-0 end-0 p-3';
+        container.style.cssText = 'z-index: 1080; pointer-events: none; max-width: 100%;';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `mafia-toast toast-${type} p-3 font-mono`;
+    toast.style.pointerEvents = 'auto';
+
+    const iconMap = {
+        success: '<i class="bi bi-check-circle-fill text-success fs-5"></i>',
+        danger: '<i class="bi bi-exclamation-octagon-fill text-danger fs-5"></i>',
+        error: '<i class="bi bi-exclamation-octagon-fill text-danger fs-5"></i>',
+        warning: '<i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>',
+        info: '<i class="bi bi-info-circle-fill text-info fs-5"></i>',
+        sheriff: '<i class="bi bi-shield-shaded text-info fs-5"></i>'
+    };
+    const icon = iconMap[type] || iconMap.info;
+
+    toast.innerHTML = `
+        <div class="d-flex align-items-start gap-2">
+            <div class="flex-shrink-0 mt-1">${icon}</div>
+            <div class="flex-grow-1 overflow-hidden">
+                ${title ? `<div class="fw-bold text-white small mb-1 text-uppercase tracking-wider">${escapeHtml(title)}</div>` : ''}
+                <div class="text-secondary small font-sans" style="line-height: 1.4;">${escapeHtml(message).replace(/\\n/g, '<br>')}</div>
+            </div>
+            <button type="button" class="btn-close btn-close-white btn-sm flex-shrink-0 ms-1 opacity-75" aria-label="Закрыть"></button>
+        </div>
+    `;
+
+    const closeBtn = toast.querySelector('.btn-close');
+    const dismiss = () => {
+        toast.classList.add('toast-hiding');
+        setTimeout(() => toast.remove(), 260);
+    };
+
+    closeBtn?.addEventListener('click', dismiss);
+    if (durationMs > 0) {
+        setTimeout(dismiss, durationMs);
+    }
+
+    container.appendChild(toast);
+
+    if (type === 'danger' || type === 'error') {
+        playTone(220, 'sawtooth', 0.15);
+    } else if (type === 'success') {
+        playTone(587, 'sine', 0.15);
+    } else if (type === 'sheriff') {
+        playTone(440, 'triangle', 0.25);
+    }
+}
+
 // ─── Ожидание инициализации Firebase ────────────────────────────────────────
 
 async function waitForFirebase(timeoutMs = 3000) {
@@ -97,7 +156,7 @@ async function createMafiaRoom() {
     try {
         const isReady = await waitForFirebase(3500);
         if (!isReady || !db) {
-            alert('Ошибка: облачная база Firestore недоступна. Пожалуйста, обновите страницу.');
+            showMafiaToast('danger', 'Ошибка подключения', 'Облачная база Firestore недоступна. Пожалуйста, обновите страницу.');
             return;
         }
 
@@ -186,7 +245,7 @@ async function createMafiaRoom() {
         enterMafiaRoom(code);
     } catch (err) {
         console.error('Ошибка создания комнаты:', err);
-        alert('Не удалось создать комнату: ' + (err.message || err));
+        showMafiaToast('danger', 'Ошибка создания', 'Не удалось создать комнату: ' + (err.message || err));
     } finally {
         if (btn) {
             btn.disabled = false;
@@ -199,21 +258,21 @@ async function createMafiaRoom() {
 
 async function joinMafiaRoom(roomCode) {
     if (!roomCode) {
-        alert('Выберите комнату из списка открытых лобби.');
+        showMafiaToast('warning', 'Внимание', 'Выберите комнату из списка открытых лобби.');
         return;
     }
 
     try {
         const isReady = await waitForFirebase(3500);
         if (!isReady || !db) {
-            alert('Ошибка: облачная база Firestore недоступна.');
+            showMafiaToast('danger', 'Ошибка', 'Облачная база Firestore недоступна.');
             return;
         }
 
         const roomRef = db.collection('mafia_rooms').doc(roomCode);
         const snap = await roomRef.get();
         if (!snap.exists) {
-            alert(`Комната ${roomCode} не найдена или уже удалена.`);
+            showMafiaToast('danger', 'Сессия недоступна', `Комната ${roomCode} не найдена или уже удалена.`);
             return;
         }
 
@@ -262,7 +321,7 @@ async function joinMafiaRoom(roomCode) {
         enterMafiaRoom(roomCode);
     } catch (err) {
         console.error('Ошибка подключения к комнате:', err);
-        alert('Ошибка подключения: ' + (err.message || err));
+        showMafiaToast('danger', 'Ошибка подключения', 'Не удалось войти в комнату: ' + (err.message || err));
     }
 }
 
@@ -287,7 +346,7 @@ function enterMafiaRoom(roomId) {
 
     mafiaRoomUnsubscribe = db.collection('mafia_rooms').doc(roomId).onSnapshot((doc) => {
         if (!doc.exists) {
-            alert('Комната была удалена.');
+            showMafiaToast('warning', 'Комната закрыта', 'Комната была удалена ведущим или администратором.');
             leaveMafiaRoom();
             return;
         }
@@ -469,7 +528,7 @@ async function startMafiaGame() {
 
     const playersArr = Object.values(currentMafiaRoomData.players || {});
     if (playersArr.length < 2) {
-        alert('Для запуска игры требуется минимум 2 участника.');
+        showMafiaToast('warning', 'Недостаточно игроков', 'Для запуска партии требуется минимум 2 участника.');
         return;
     }
 
@@ -769,22 +828,29 @@ function renderPlayerGrid(room, self) {
 
         if (isAlive && p.isAlive && !isSelf) {
             if (phase === 'night') {
-                if (self.role === 'mafia') {
-                    const isTarget = (self.nightTarget === p.id);
-                    actionButtonHtml = `<button class="btn btn-sm ${isTarget ? 'btn-danger' : 'btn-outline-danger'} w-100 font-mono py-1" onclick="selectNightTarget('${p.id}')">${isTarget ? 'Цель выбрана' : 'Ликвидировать'}</button>`;
-                } else if (self.role === 'doctor') {
-                    const isTarget = (self.nightTarget === p.id);
-                    actionButtonHtml = `<button class="btn btn-sm ${isTarget ? 'btn-success' : 'btn-outline-success'} w-100 font-mono py-1" onclick="selectNightTarget('${p.id}')">${isTarget ? 'Защищается' : 'Лечить'}</button>`;
-                } else if (self.role === 'sheriff') {
-                    const isTarget = (self.nightTarget === p.id);
-                    actionButtonHtml = `<button class="btn btn-sm ${isTarget ? 'btn-info' : 'btn-outline-info'} w-100 font-mono py-1" onclick="selectNightTarget('${p.id}')">${isTarget ? 'Проверяется' : 'Проверить'}</button>`;
-                } else if (self.role === 'maniac') {
-                    const isTarget = (self.nightTarget === p.id);
-                    actionButtonHtml = `<button class="btn btn-sm ${isTarget ? 'btn-danger' : 'btn-outline-danger'} w-100 font-mono py-1" onclick="selectNightTarget('${p.id}')">${isTarget ? 'Цель захвачена' : 'Уничтожить'}</button>`;
+                const hasMadeNightMove = !!(self && self.nightTarget);
+                const isMyChosenTarget = (self?.nightTarget === p.id);
+
+                if (hasMadeNightMove) {
+                    if (isMyChosenTarget) {
+                        actionButtonHtml = `<button class="btn btn-sm btn-success-subtle text-success border border-success-subtle w-100 font-mono py-1" disabled><i class="bi bi-check2-circle me-1"></i> Ваш ход сделан</button>`;
+                    } else {
+                        actionButtonHtml = `<button class="btn btn-sm btn-outline-secondary w-100 font-mono py-1 opacity-50" disabled>Ход завершен</button>`;
+                    }
+                } else {
+                    if (self.role === 'mafia') {
+                        actionButtonHtml = `<button class="btn btn-sm btn-outline-danger w-100 font-mono py-1" onclick="selectNightTarget('${p.id}')"><i class="bi bi-crosshair me-1"></i> Ликвидировать</button>`;
+                    } else if (self.role === 'doctor') {
+                        actionButtonHtml = `<button class="btn btn-sm btn-outline-success w-100 font-mono py-1" onclick="selectNightTarget('${p.id}')"><i class="bi bi-heart-pulse me-1"></i> Лечить</button>`;
+                    } else if (self.role === 'sheriff') {
+                        actionButtonHtml = `<button class="btn btn-sm btn-outline-info w-100 font-mono py-1" onclick="selectNightTarget('${p.id}')"><i class="bi bi-search me-1"></i> Проверить</button>`;
+                    } else if (self.role === 'maniac') {
+                        actionButtonHtml = `<button class="btn btn-sm btn-outline-danger w-100 font-mono py-1" onclick="selectNightTarget('${p.id}')"><i class="bi bi-slash-circle me-1"></i> Уничтожить</button>`;
+                    }
                 }
             } else if (phase === 'voting') {
                 const hasVoted = (self.voteTarget === p.id);
-                actionButtonHtml = `<button class="btn btn-sm ${hasVoted ? 'btn-danger' : 'btn-outline-danger'} w-100 font-mono py-1" onclick="castVote('${p.id}')">${hasVoted ? 'Ваш голос учтен' : 'Голосовать против'}</button>`;
+                actionButtonHtml = `<button class="btn btn-sm ${hasVoted ? 'btn-danger' : 'btn-outline-danger'} w-100 font-mono py-1" onclick="castVote('${p.id}')">${hasVoted ? '<i class="bi bi-check-lg me-1"></i> Ваш голос учтен' : 'Голосовать против'}</button>`;
             }
         }
 
@@ -866,6 +932,12 @@ async function selectNightTarget(targetId) {
     }
     if (!self || !self.isAlive) return;
 
+    // СТРОГО 1 ХОД НОЧЬЮ: если игрок уже совершил выбор, ход заблокирован до утра
+    if (self.nightTarget) {
+        showMafiaToast('info', 'Ход уже сделан', 'Вы уже совершили свой ход этой ночью. Изменить выбор нельзя. Дождитесь наступления дня.');
+        return;
+    }
+
     const targetPlayer = currentMafiaRoomData.players[targetId];
     const targetName = targetPlayer?.name || targetId;
 
@@ -875,17 +947,21 @@ async function selectNightTarget(targetId) {
 
     if (self.role === 'mafia') {
         updates['nightActions.mafiaTarget'] = targetId;
-        alert(`Цель мафии выбрана: «${targetName}».`);
+        showMafiaToast('danger', 'Ход мафии', `Цель ликвидации выбрана: «${targetName}». Ваш ход на эту ночь завершен.`);
     } else if (self.role === 'doctor') {
         updates['nightActions.doctorTarget'] = targetId;
-        alert(`Вы защитили игрока «${targetName}» от гибели на эту ночь.`);
+        showMafiaToast('success', 'Ход доктора', `Вы защитили игрока «${targetName}». Он в безопасности на эту ночь.`);
     } else if (self.role === 'sheriff') {
         updates['nightActions.sheriffTarget'] = targetId;
         const isTargetMafia = (targetPlayer?.role === 'mafia');
-        alert(`Шерифская проверка игрока «${targetName}»:\n${isTargetMafia ? 'ВНИМАНИЕ! Этот игрок — ЧЛЕН МАФИИ!' : 'Этот игрок чист (НЕ МАФИЯ).'}`);
+        showMafiaToast(
+            'sheriff',
+            'Досье шерифа',
+            `Секретная проверка игрока «${targetName}»:\n${isTargetMafia ? 'ВНИМАНИЕ! Этот игрок — МАФИЯ!' : 'Этот игрок чист (НЕ мафия).'}`
+        );
     } else if (self.role === 'maniac') {
         updates['nightActions.maniacTarget'] = targetId;
-        alert(`Жертва маньяка выбрана: «${targetName}».`);
+        showMafiaToast('danger', 'Ход маньяка', `Жертва маньяка выбрана: «${targetName}». Ваш ход на эту ночь завершен.`);
     }
 
     await roomRef.update(updates);
@@ -908,7 +984,12 @@ async function castVote(targetId) {
         [`players.${self.id}.voteTarget`]: targetId,
         [`voting.votes.${self.id}`]: targetId
     });
-    alert(`Ваш голос учтен: «${targetName}».`);
+
+    if (targetId === 'skip') {
+        showMafiaToast('info', 'Голосование', 'Вы воздержались от голосования в этом раунде.');
+    } else {
+        showMafiaToast('warning', 'Голос учтен', `Ваш голос против игрока «${targetName}» принят.`);
+    }
 }
 
 // ─── Управление ведущего: Смена фаз ─────────────────────────────────────────
@@ -1252,13 +1333,13 @@ async function sendChatMessage() {
 
     // Мертвые не пишут в общий чат
     if (self && !self.isAlive && currentChatChannel === 'general') {
-        alert('Устраненные участники не могут отправлять сообщения в общий эфир.');
+        showMafiaToast('warning', 'Радиомолчание', 'Устраненные участники не могут отправлять сообщения в общий эфир.');
         return;
     }
 
     // Ночью общий чат блокируется
     if (currentMafiaRoomData.status === 'night' && currentChatChannel === 'general' && !self.isHost) {
-        alert('Ночью в общем эфире действует режим радиомолчания.');
+        showMafiaToast('info', 'Режим тишины', 'Ночью в общем эфире действует режим радиомолчания. Город спит.');
         return;
     }
 
@@ -1428,7 +1509,7 @@ async function deleteRoomFromList(roomId) {
 
     const isReady = await waitForFirebase(3000);
     if (!isReady || !db) {
-        alert('Ошибка: облачная база Firestore недоступна.');
+        showMafiaToast('danger', 'Ошибка', 'Облачная база Firestore недоступна.');
         return;
     }
 
@@ -1437,10 +1518,11 @@ async function deleteRoomFromList(roomId) {
         if (localStorage.getItem('lastMafiaRoomId') === roomId) {
             localStorage.removeItem('lastMafiaRoomId');
         }
+        showMafiaToast('success', 'Комната удалена', `Комната ${roomId} успешно удалена.`);
         // Realtime listener автоматически перерисует список
     } catch (err) {
         console.error('Ошибка удаления комнаты:', err);
-        alert('Не удалось удалить комнату: ' + (err.message || err));
+        showMafiaToast('danger', 'Ошибка удаления', 'Не удалось удалить комнату: ' + (err.message || err));
     }
 }
 
@@ -1460,12 +1542,12 @@ function copyMafiaRoomCode() {
     if (!currentMafiaRoomId) return;
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(currentMafiaRoomId).then(() => {
-            alert('Код комнаты скопирован: ' + currentMafiaRoomId);
+            showMafiaToast('success', 'Буфер обмена', `Код сессии «${currentMafiaRoomId}» скопирован.`);
         }).catch(() => {
-            prompt('Скопируйте код комнаты вручную:', currentMafiaRoomId);
+            showMafiaToast('info', 'Код комнаты', `Код сессии: ${currentMafiaRoomId}`);
         });
     } else {
-        prompt('Скопируйте код комнаты вручную:', currentMafiaRoomId);
+        showMafiaToast('info', 'Код комнаты', `Код сессии: ${currentMafiaRoomId}`);
     }
 }
 
