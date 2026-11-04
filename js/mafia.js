@@ -401,9 +401,9 @@ function renderLobbyPlayers(room, isHost) {
 
     const startBtn = document.getElementById('startGameBtn');
     if (startBtn) {
-        startBtn.disabled = playersArr.length < 4;
-        startBtn.textContent = playersArr.length < 4 
-            ? `Ожидание игроков (минимум 4, сейчас ${playersArr.length})` 
+        startBtn.disabled = playersArr.length < 2;
+        startBtn.textContent = playersArr.length < 2 
+            ? `Ожидание игроков (минимум 2, сейчас ${playersArr.length})` 
             : `Раздать роли и начать партию (${playersArr.length} игроков)`;
     }
 }
@@ -414,8 +414,8 @@ async function startMafiaGame() {
     if (!currentMafiaRoomData || !currentMafiaRoomId) return;
 
     const playersArr = Object.values(currentMafiaRoomData.players || {});
-    if (playersArr.length < 4) {
-        alert('Для запуска классической игры требуется минимум 4 участника.');
+    if (playersArr.length < 2) {
+        alert('Для запуска игры требуется минимум 2 участника.');
         return;
     }
 
@@ -426,22 +426,30 @@ async function startMafiaGame() {
     // Пул ролей
     let roles = [];
 
-    // Количество мафии (1 при 4-6, 2 при 7-9, 3 при 10+)
-    let mafiaCount = n >= 10 ? 3 : (n >= 7 ? 2 : 1);
-    for (let i = 0; i < mafiaCount; i++) roles.push('mafia');
+    if (n === 2) {
+        // Партия на двоих (дуэль): 1 Мафия, 1 Шериф
+        roles = ['mafia', 'sheriff'];
+    } else if (n === 3) {
+        // Партия на троих: 1 Мафия, 1 Шериф, 1 Мирный житель
+        roles = ['mafia', 'sheriff', 'civilian'];
+    } else {
+        // Партия на 4+ игроков
+        let mafiaCount = n >= 10 ? 3 : (n >= 7 ? 2 : 1);
+        for (let i = 0; i < mafiaCount; i++) roles.push('mafia');
 
-    // Обязательные активные роли
-    roles.push('doctor');
-    roles.push('sheriff');
+        // Обязательные активные роли
+        roles.push('doctor');
+        roles.push('sheriff');
 
-    // Опциональные кастомные роли
-    if (custom.maniac && roles.length < n) roles.push('maniac');
-    if (custom.courtesan && roles.length < n) roles.push('courtesan');
-    if (custom.journalist && roles.length < n) roles.push('journalist');
+        // Опциональные кастомные роли
+        if (custom.maniac && roles.length < n) roles.push('maniac');
+        if (custom.courtesan && roles.length < n) roles.push('courtesan');
+        if (custom.journalist && roles.length < n) roles.push('journalist');
 
-    // Остальные места — мирные жители
-    while (roles.length < n) {
-        roles.push('civilian');
+        // Остальные места — мирные жители
+        while (roles.length < n) {
+            roles.push('civilian');
+        }
     }
 
     // Случайное перемешивание (Fisher-Yates)
@@ -884,8 +892,13 @@ function checkWinCondition(players) {
         return 'civilians';
     }
 
-    // Если мафия равна или превышает число остальных
-    if (mafiaAlive.length >= (alive.length - mafiaAlive.length)) {
+    // Если все мирные мертвы — победа мафии
+    if (townAlive.length === 0 && maniacAlive.length === 0) {
+        return 'mafia';
+    }
+
+    // Для классических партий (3+ живых участников): если мафия равна или превышает число остальных
+    if (alive.length >= 3 && mafiaAlive.length >= (alive.length - mafiaAlive.length)) {
         return 'mafia';
     }
 
@@ -1069,26 +1082,89 @@ async function refreshRoomsList() {
         }
 
         container.innerHTML = '';
+        const player = getCurrentPlayerInfo();
+        const isAdmin = (typeof isCurrentAdmin === 'function' && isCurrentAdmin());
+
         snap.forEach(doc => {
             const data = doc.data();
             const count = Object.keys(data.players || {}).length;
+            const isHost = (data.hostId === player.id);
+            const canDelete = isHost || isAdmin || count === 0;
+
             const item = document.createElement('div');
             item.className = 'col-md-6 mb-2';
             item.innerHTML = `
                 <div class="spotlight-card p-3 d-flex align-items-center justify-content-between">
                     <div>
-                        <div class="font-mono fw-bold">${data.roomId}</div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="font-mono fw-bold">${data.roomId}</span>
+                            ${isHost ? '<span class="badge bg-secondary font-mono small">Ваша комната</span>' : ''}
+                        </div>
                         <div class="small text-secondary">Ведущий: ${escapeHtml(data.hostName || '—')} · ${count} игроков</div>
                     </div>
-                    <button class="btn-shiny btn-sm" onclick="joinMafiaRoom('${data.roomId}')">
-                        Подключиться
-                    </button>
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn-shiny btn-sm" onclick="joinMafiaRoom('${data.roomId}')">
+                            Войти
+                        </button>
+                        ${canDelete ? `
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteRoomFromList('${data.roomId}')" title="Удалить комнату">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        ` : ''}
+                    </div>
                 </div>
             `;
             container.appendChild(item);
         });
     } catch (err) {
         container.innerHTML = '<div class="text-danger font-mono small">Ошибка получения списка комнат.</div>';
+    }
+}
+
+// ─── Удаление комнат ────────────────────────────────────────────────────────
+
+async function deleteMafiaRoom() {
+    if (!currentMafiaRoomId || !db) return;
+    const roomId = currentMafiaRoomId;
+    if (!confirm(`Вы действительно хотите удалить комнату ${roomId}? Все участники вернутся в лобби.`)) {
+        return;
+    }
+
+    try {
+        if (mafiaRoomUnsubscribe) {
+            mafiaRoomUnsubscribe();
+            mafiaRoomUnsubscribe = null;
+        }
+        await db.collection('mafia_rooms').doc(roomId).delete();
+        localStorage.removeItem('lastMafiaRoomId');
+        currentMafiaRoomId = null;
+        currentMafiaRoomData = null;
+
+        document.getElementById('screenRoom')?.classList.add('d-none');
+        document.getElementById('screenBrowser')?.classList.remove('d-none');
+        refreshRoomsList();
+        alert(`Комната ${roomId} успешно удалена.`);
+    } catch (err) {
+        console.error('Ошибка удаления комнаты:', err);
+        alert('Ошибка при удалении комнаты: ' + (err.message || err));
+    }
+}
+
+async function deleteRoomFromList(roomId) {
+    if (!roomId || !db) return;
+    if (!confirm(`Вы действительно хотите удалить комнату ${roomId}?`)) {
+        return;
+    }
+
+    try {
+        await db.collection('mafia_rooms').doc(roomId).delete();
+        if (localStorage.getItem('lastMafiaRoomId') === roomId) {
+            localStorage.removeItem('lastMafiaRoomId');
+        }
+        refreshRoomsList();
+    } catch (err) {
+        console.error('Ошибка удаления комнаты:', err);
+        alert('Не удалось удалить комнату: ' + (err.message || err));
     }
 }
 
@@ -1143,6 +1219,8 @@ async function kickPlayer(uid) {
 window.createMafiaRoom = createMafiaRoom;
 window.joinMafiaRoom = joinMafiaRoom;
 window.leaveMafiaRoom = leaveMafiaRoom;
+window.deleteMafiaRoom = deleteMafiaRoom;
+window.deleteRoomFromList = deleteRoomFromList;
 window.copyMafiaRoomCode = copyMafiaRoomCode;
 window.startMafiaGame = startMafiaGame;
 window.hostAdvancePhase = hostAdvancePhase;
@@ -1165,6 +1243,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('copyRoomCodeBtn')?.addEventListener('click', copyMafiaRoomCode);
     document.getElementById('leaveMafiaRoomBtn')?.addEventListener('click', leaveMafiaRoom);
     document.getElementById('leaveMafiaRoomBtn2')?.addEventListener('click', leaveMafiaRoom);
+    document.getElementById('deleteMafiaRoomBtn')?.addEventListener('click', deleteMafiaRoom);
+    document.getElementById('deleteMafiaRoomBtn2')?.addEventListener('click', deleteMafiaRoom);
     document.getElementById('startGameBtn')?.addEventListener('click', startMafiaGame);
     document.getElementById('hostNextPhaseBtn')?.addEventListener('click', hostAdvancePhase);
     document.getElementById('toggleRoleBtn')?.addEventListener('click', toggleRoleCardVisibility);

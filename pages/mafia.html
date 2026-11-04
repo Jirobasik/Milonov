@@ -208,7 +208,10 @@
                     </button>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <button type="button" id="leaveMafiaRoomBtn" class="btn-shiny btn-shiny-danger btn-sm" onclick="leaveMafiaRoom()">
+                    <button type="button" id="deleteMafiaRoomBtn" class="btn-shiny btn-shiny-danger btn-sm host-only-control" style="display: none;" onclick="deleteMafiaRoom()">
+                        <i class="bi bi-trash3"></i> Удалить комнату
+                    </button>
+                    <button type="button" id="leaveMafiaRoomBtn" class="btn-shiny btn-sm" onclick="leaveMafiaRoom()">
                         <i class="bi bi-door-closed"></i> Покинуть комнату
                     </button>
                 </div>
@@ -219,7 +222,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
                     <div>
                         <h2 class="h5 fw-semibold mb-1">Лобби ожидания игроков</h2>
-                        <div class="text-secondary small">Для запуска сессии необходимо минимум 4 участника.</div>
+                        <div class="text-secondary small">Для запуска сессии необходимо минимум 2 участника.</div>
                     </div>
                     <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono" id="lobbyPlayersCount">0 участников</span>
                 </div>
@@ -330,6 +333,9 @@
                 <div class="d-flex gap-2 justify-content-center flex-wrap">
                     <button type="button" id="hostRestartGameBtn" class="btn-shiny btn-shiny-primary px-4 py-2" onclick="hostRestartGame()">
                         <i class="bi bi-arrow-clockwise"></i> Перезапустить лобби
+                    </button>
+                    <button type="button" id="deleteMafiaRoomBtn2" class="btn-shiny btn-shiny-danger px-4 py-2 host-only-control" style="display: none;" onclick="deleteMafiaRoom()">
+                        <i class="bi bi-trash3"></i> Удалить комнату
                     </button>
                     <button type="button" id="leaveMafiaRoomBtn2" class="btn-shiny px-4 py-2" onclick="leaveMafiaRoom()">
                         <i class="bi bi-door-closed"></i> Вернуться в список комнат
