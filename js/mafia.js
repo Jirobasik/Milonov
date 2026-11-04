@@ -6,7 +6,7 @@
 let currentMafiaRoomId = null;
 let mafiaRoomUnsubscribe = null;
 let currentMafiaRoomData = null;
-let currentRoleCardRevealed = false;
+let currentRoleCardRevealed = true;
 let audioContext = null;
 
 // Инициализация звуковых уведомлений (Web Audio API без внешних файлов)
@@ -314,7 +314,10 @@ let lastPhase = null;
 function renderMafiaRoomState(room) {
     const player = getCurrentPlayerInfo();
     const isHost = (room.hostId === player.id);
-    const self = room.players ? room.players[player.id] : null;
+    let self = room.players ? room.players[player.id] : null;
+    if (!self && room.players) {
+        self = Object.values(room.players).find(p => p.name === player.name) || null;
+    }
 
     // Звук смены фазы
     if (room.status !== lastPhase) {
@@ -489,21 +492,40 @@ function renderPhaseHeader(room, self) {
     const badge = document.getElementById('gamePhaseBadge');
     const desc = document.getElementById('gamePhaseDesc');
     const roundDisp = document.getElementById('gameRoundDisplay');
+    const nextBtn = document.getElementById('hostNextPhaseBtn');
 
     if (roundDisp) roundDisp.textContent = `РАУНД ${room.round}`;
 
     if (room.status === 'night') {
-        badge.className = 'badge bg-dark border border-secondary text-white font-mono px-3 py-2';
-        badge.innerHTML = '<i class="bi bi-moon-stars me-1"></i> НОЧЬ';
-        desc.textContent = 'Город засыпает. Активные роли выбирают цели для ночных действий.';
+        if (badge) {
+            badge.className = 'badge bg-dark border border-secondary text-white font-mono px-3 py-2';
+            badge.innerHTML = '<i class="bi bi-moon-stars me-1"></i> НОЧЬ';
+        }
+        if (desc) desc.textContent = 'Город засыпает. Мафия и активные роли делают свой выбор.';
+        if (nextBtn) {
+            nextBtn.className = 'btn-shiny btn-shiny-primary btn-sm font-mono';
+            nextBtn.innerHTML = '<i class="bi bi-sun me-1"></i> Завершить ночь → Начать день';
+        }
     } else if (room.status === 'day') {
-        badge.className = 'badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle font-mono px-3 py-2';
-        badge.innerHTML = '<i class="bi bi-sun me-1"></i> ДЕНЬ: ОБСУЖДЕНИЕ';
-        desc.textContent = room.nightResults?.summaryText || 'Город проснулся. Идет открытое обсуждение подозреваемых.';
+        if (badge) {
+            badge.className = 'badge bg-warning-subtle text-warning font-mono px-3 py-2';
+            badge.innerHTML = '<i class="bi bi-sun me-1"></i> ДЕНЬ: ОБСУЖДЕНИЕ';
+        }
+        if (desc) desc.textContent = room.nightResults?.summaryText || 'Город проснулся. Идет открытое обсуждение подозреваемых.';
+        if (nextBtn) {
+            nextBtn.className = 'btn-shiny btn-shiny-warning btn-sm font-mono text-dark';
+            nextBtn.innerHTML = '<i class="bi bi-fingerprint me-1"></i> Завершить день → Начать голосование';
+        }
     } else if (room.status === 'voting') {
-        badge.className = 'badge bg-danger-subtle text-danger-emphasis border border-danger-subtle font-mono px-3 py-2';
-        badge.innerHTML = '<i class="bi bi-fingerprint me-1"></i> ГОЛОСОВАНИЕ';
-        desc.textContent = 'Участники отдают голоса против подозреваемого либо голосуют за пропуск.';
+        if (badge) {
+            badge.className = 'badge bg-danger-subtle text-danger font-mono px-3 py-2';
+            badge.innerHTML = '<i class="bi bi-fingerprint me-1"></i> ГОЛОСОВАНИЕ';
+        }
+        if (desc) desc.textContent = 'Отдайте голос против подозреваемого за столом либо воздержитесь.';
+        if (nextBtn) {
+            nextBtn.className = 'btn-shiny btn-shiny-danger btn-sm font-mono';
+            nextBtn.innerHTML = '<i class="bi bi-moon-stars me-1"></i> Подвести итоги голосования → Начать ночь';
+        }
     }
 }
 
@@ -548,19 +570,60 @@ const ROLE_INFO = {
 };
 
 function renderRoleCard(self) {
-    if (!self || !self.role) return;
-    const info = ROLE_INFO[self.role] || ROLE_INFO.civilian;
-
-    document.getElementById('myRoleTitle').textContent = info.title;
-    document.getElementById('myRoleTeam').textContent = `КОМАНДА: ${info.team}`;
-    document.getElementById('myRoleDesc').textContent = info.desc;
-
+    const roleCard = document.getElementById('roleCardBody');
+    const headerBadge = document.getElementById('myRoleBadgeHeader');
+    const roleTitle = document.getElementById('myRoleTitle');
+    const roleTeam = document.getElementById('myRoleTeam');
+    const roleDesc = document.getElementById('myRoleDesc');
     const aliveBadge = document.getElementById('myAliveBadge');
+
+    if (!self || !self.role) {
+        if (headerBadge) {
+            headerBadge.className = 'badge bg-secondary font-mono';
+            headerBadge.textContent = 'ОЖИДАНИЕ...';
+        }
+        if (roleTitle) roleTitle.textContent = 'Ожидание раздачи...';
+        if (roleTeam) roleTeam.textContent = 'КОМАНДА: —';
+        if (roleDesc) roleDesc.textContent = 'Роли будут распределены ведущим после запуска партии.';
+        return;
+    }
+
+    const info = ROLE_INFO[self.role] || ROLE_INFO.civilian;
+    const roleColorMap = {
+        mafia: { badge: 'bg-danger text-white', team: 'text-danger fw-bold' },
+        sheriff: { badge: 'bg-info text-dark', team: 'text-info fw-bold' },
+        doctor: { badge: 'bg-success text-white', team: 'text-success fw-bold' },
+        maniac: { badge: 'bg-warning text-dark', team: 'text-warning fw-bold' },
+        courtesan: { badge: 'bg-secondary text-white', team: 'text-white fw-bold' },
+        journalist: { badge: 'bg-primary text-white', team: 'text-primary fw-bold' },
+        civilian: { badge: 'bg-secondary-subtle text-white', team: 'text-secondary fw-bold' }
+    };
+    const colors = roleColorMap[self.role] || roleColorMap.civilian;
+
+    if (headerBadge) {
+        headerBadge.className = `badge font-mono ${colors.badge}`;
+        headerBadge.textContent = info.title.toUpperCase();
+    }
+    if (roleTitle) {
+        roleTitle.textContent = info.title;
+        roleTitle.className = `h5 fw-bold mb-0 ${self.role === 'mafia' ? 'text-danger' : (self.role === 'sheriff' ? 'text-info' : 'text-white')}`;
+    }
+    if (roleTeam) {
+        roleTeam.innerHTML = `КОМАНДА: <span class="${colors.team}">${info.team.toUpperCase()}</span>`;
+    }
+    if (roleDesc) {
+        roleDesc.textContent = info.desc;
+    }
+
     if (aliveBadge) {
         aliveBadge.className = self.isAlive 
             ? 'badge bg-success-subtle text-success-emphasis font-mono' 
             : 'badge bg-danger-subtle text-danger-emphasis font-mono';
         aliveBadge.textContent = self.isAlive ? 'ЖИВ' : 'УСТРАНЕН';
+    }
+
+    if (roleCard && currentRoleCardRevealed) {
+        roleCard.style.display = 'block';
     }
 }
 
@@ -572,7 +635,7 @@ function toggleRoleCardVisibility() {
         body.style.display = currentRoleCardRevealed ? 'block' : 'none';
     }
     if (eye) {
-        eye.className = currentRoleCardRevealed ? 'bi bi-eye-slash' : 'bi bi-eye';
+        eye.className = currentRoleCardRevealed ? 'bi bi-eye' : 'bi bi-eye-slash';
     }
 }
 
@@ -625,8 +688,15 @@ function renderPlayerGrid(room, self) {
                     </span>
                     ${voteCount > 0 ? `<span class="badge bg-danger font-mono">${voteCount} голос(ов)</span>` : ''}
                 </div>
-                <div class="fw-semibold mb-1">${escapeHtml(p.name)} ${isSelf ? '<small class="text-secondary">(Вы)</small>' : ''}</div>
-                <div class="font-mono text-secondary small mb-2">ID: ${p.id}</div>
+                <div class="fw-semibold mb-1">
+                    ${escapeHtml(p.name)} 
+                    ${isSelf ? '<span class="badge bg-secondary font-mono small ms-1">(Вы)</span>' : ''}
+                </div>
+                <div class="font-mono text-secondary small mb-2">
+                    ID: ${p.id}
+                    ${isSelf && self?.role ? `· <span class="text-white fw-bold">${ROLE_INFO[self.role]?.title || self.role}</span>` : ''}
+                    ${!isSelf && p.role === 'mafia' && self?.role === 'mafia' ? '· <span class="text-danger fw-bold">Мафия-союзник</span>' : ''}
+                </div>
                 ${p.isHost ? '<div class="badge bg-secondary-subtle text-secondary-emphasis font-mono small mb-2">ВЕДУЩИЙ</div>' : ''}
                 ${actionButtonHtml}
             </div>
@@ -656,56 +726,72 @@ function renderPlayerGrid(room, self) {
 async function selectNightTarget(targetId) {
     if (!currentMafiaRoomId || !currentMafiaRoomData) return;
     const player = getCurrentPlayerInfo();
-    const self = currentMafiaRoomData.players[player.id];
+    let self = currentMafiaRoomData.players[player.id];
+    if (!self) {
+        self = Object.values(currentMafiaRoomData.players || {}).find(p => p.name === player.name);
+    }
     if (!self || !self.isAlive) return;
+
+    const targetPlayer = currentMafiaRoomData.players[targetId];
+    const targetName = targetPlayer?.name || targetId;
 
     const roomRef = db.collection('mafia_rooms').doc(currentMafiaRoomId);
     const updates = {};
-    updates[`players.${player.id}.nightTarget`] = targetId;
+    updates[`players.${self.id}.nightTarget`] = targetId;
 
-    if (self.role === 'mafia') updates['nightActions.mafiaTarget'] = targetId;
-    if (self.role === 'doctor') updates['nightActions.doctorTarget'] = targetId;
-    if (self.role === 'sheriff') updates['nightActions.sheriffTarget'] = targetId;
-    if (self.role === 'maniac') updates['nightActions.maniacTarget'] = targetId;
+    if (self.role === 'mafia') {
+        updates['nightActions.mafiaTarget'] = targetId;
+        alert(`Цель мафии выбрана: «${targetName}».`);
+    } else if (self.role === 'doctor') {
+        updates['nightActions.doctorTarget'] = targetId;
+        alert(`Вы защитили игрока «${targetName}» от гибели на эту ночь.`);
+    } else if (self.role === 'sheriff') {
+        updates['nightActions.sheriffTarget'] = targetId;
+        const isTargetMafia = (targetPlayer?.role === 'mafia');
+        alert(`Шерифская проверка игрока «${targetName}»:\n${isTargetMafia ? 'ВНИМАНИЕ! Этот игрок — ЧЛЕН МАФИИ!' : 'Этот игрок чист (НЕ МАФИЯ).'}`);
+    } else if (self.role === 'maniac') {
+        updates['nightActions.maniacTarget'] = targetId;
+        alert(`Жертва маньяка выбрана: «${targetName}».`);
+    }
 
     await roomRef.update(updates);
-    alert('Ваш ночной выбор зафиксирован.');
 }
 
 async function castVote(targetId) {
     if (!currentMafiaRoomId || !currentMafiaRoomData) return;
     const player = getCurrentPlayerInfo();
-    const self = currentMafiaRoomData.players[player.id];
+    let self = currentMafiaRoomData.players[player.id];
+    if (!self) {
+        self = Object.values(currentMafiaRoomData.players || {}).find(p => p.name === player.name);
+    }
     if (!self || !self.isAlive) return;
+
+    const targetPlayer = targetId === 'skip' ? { name: 'Воздержаться' } : currentMafiaRoomData.players[targetId];
+    const targetName = targetPlayer?.name || targetId;
 
     const roomRef = db.collection('mafia_rooms').doc(currentMafiaRoomId);
     await roomRef.update({
-        [`players.${player.id}.voteTarget`]: targetId,
-        [`voting.votes.${player.id}`]: targetId
+        [`players.${self.id}.voteTarget`]: targetId,
+        [`voting.votes.${self.id}`]: targetId
     });
+    alert(`Ваш голос учтен: «${targetName}».`);
 }
 
 // ─── Управление ведущего: Смена фаз ─────────────────────────────────────────
 
 function renderActionPanels(room, self, isHost) {
-    const hostPanel = document.getElementById('hostControlsPanel');
-    if (!hostPanel) return;
-
-    if (!isHost) {
-        hostPanel.style.display = 'none';
-        return;
-    }
-
-    hostPanel.style.display = 'block';
     const nextBtn = document.getElementById('hostNextPhaseBtn');
-    if (nextBtn) {
-        if (room.status === 'night') {
-            nextBtn.textContent = 'Завершить ночь → Начать день (Подвести итоги)';
-        } else if (room.status === 'day') {
-            nextBtn.textContent = 'Завершить обсуждение → Начать голосование';
-        } else if (room.status === 'voting') {
-            nextBtn.textContent = 'Подвести итоги голосования → Начать ночь';
-        }
+    if (!nextBtn) return;
+
+    if (room.status === 'night') {
+        nextBtn.className = 'btn-shiny btn-shiny-primary btn-sm font-mono';
+        nextBtn.innerHTML = '<i class="bi bi-sun me-1"></i> Завершить ночь → Начать день';
+    } else if (room.status === 'day') {
+        nextBtn.className = 'btn-shiny btn-shiny-warning btn-sm font-mono text-dark';
+        nextBtn.innerHTML = '<i class="bi bi-fingerprint me-1"></i> Завершить день → Начать голосование';
+    } else if (room.status === 'voting') {
+        nextBtn.className = 'btn-shiny btn-shiny-danger btn-sm font-mono';
+        nextBtn.innerHTML = '<i class="bi bi-moon-stars me-1"></i> Завершить голосование → Начать ночь';
     }
 }
 
@@ -787,9 +873,14 @@ async function hostAdvancePhase() {
         });
 
     } else if (room.status === 'day') {
-        // Переход к голосованию
+        // Переход к голосованию (очищаем старые голоса)
+        Object.keys(players).forEach(id => {
+            players[id].voteTarget = null;
+        });
+
         await roomRef.update({
             status: 'voting',
+            players: players,
             voting: {
                 votes: {},
                 eliminated: null
@@ -839,9 +930,10 @@ async function hostAdvancePhase() {
             lynchText = 'Голосование завершилось без исключения: голоса разделились либо большинство воздержалось.';
         }
 
-        // Сброс дневных выборов
+        // Сброс дневных выборов и ночных целей
         Object.keys(players).forEach(id => {
             players[id].voteTarget = null;
+            players[id].nightTarget = null;
         });
 
         const win = checkWinCondition(players);
@@ -851,6 +943,13 @@ async function hostAdvancePhase() {
             winner: win,
             round: room.round + 1,
             players: players,
+            nightActions: {
+                mafiaTarget: null,
+                doctorTarget: null,
+                sheriffTarget: null,
+                maniacTarget: null,
+                courtesanTarget: null
+            },
             voting: {
                 votes: {},
                 eliminated: eliminatedId
