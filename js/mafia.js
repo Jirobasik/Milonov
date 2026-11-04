@@ -533,48 +533,64 @@ function renderPhaseHeader(room, self) {
 
 const ROLE_INFO = {
     civilian: {
-        title: 'Мирный житель',
+        title: 'Мирные жители',
         team: 'Город',
-        desc: 'Ваша цель — вычислить мафию и маньяка в ходе дневных дискуссий и устранить их голосованием.'
+        desc: 'Ваша цель — вычислить мафию и остаться в живых.',
+        instruction: 'Ночью отдыхайте. Днем участвуйте в дискуссии и голосуйте против мафии.',
+        img: '../images/mafia/civilian.jpg'
     },
     mafia: {
         title: 'Мафия',
         team: 'Мафия',
-        desc: 'Ночью вы выбираете жертву в приватном канале. Днем притворяйтесь мирным гражданином.'
+        desc: 'Ваша цель — убить всех мирных жителей.',
+        instruction: 'Каждую ночь выбирайте цель для ликвидации в приватном канале. Днем притворяйтесь мирным гражданином.',
+        img: '../images/mafia/mafia.jpg'
     },
     doctor: {
         title: 'Доктор',
         team: 'Город',
-        desc: 'Ночью вы выбираете одного игрока, которого спасете от гибели в случае покушения.'
+        desc: 'Ночью вы можете вылечить игрока.',
+        instruction: 'Каждую ночь выбирайте одного участника для защиты от нападения.',
+        img: '../images/mafia/doctor.jpg'
     },
     sheriff: {
         title: 'Шериф',
         team: 'Город',
-        desc: 'Каждую ночь вы можете проверить одного участника и узнать, принадлежит ли он к мафии.'
+        desc: 'Ночью вы можете проверить, кто есть кто.',
+        instruction: 'Каждую ночь выбирайте подозреваемого для секретной проверки на принадлежность к мафии.',
+        img: '../images/mafia/sheriff.jpg'
     },
     maniac: {
         title: 'Маньяк',
         team: 'Одиночка',
-        desc: 'Одиночный убийца. Каждую ночь уничтожаете цель. Побеждаете, если остаетесь один.'
+        desc: 'Вы — одиночный стрелок. Ночью можете убить любого игрока.',
+        instruction: 'Ночью устраняйте любого игрока. Побеждаете, если остаетесь последним выжившим.',
+        img: '../images/mafia/maniac.jpg'
     },
     courtesan: {
         title: 'Любовница',
         team: 'Город',
-        desc: 'Ночью блокируете способность одного игрока. Его ночное действие аннулируется.'
+        desc: 'Ночью вы можете заблокировать любое ночное действие.',
+        instruction: 'Блокируйте способность выбранного игрока на текущую ночь.',
+        img: '../images/mafia/courtesan.jpg'
     },
     journalist: {
         title: 'Журналист',
         team: 'Город',
-        desc: 'Ночью сравниваете двух игроков и узнаете, находятся ли они в одной команде.'
+        desc: 'Вы можете сравнить команды двух игроков (мирный или мафия).',
+        instruction: 'Сравнивайте команды двух игроков, чтобы узнать, на одной ли они стороне.',
+        img: '../images/mafia/journalist.jpg'
     }
 };
 
 function renderRoleCard(self) {
     const roleCard = document.getElementById('roleCardBody');
     const headerBadge = document.getElementById('myRoleBadgeHeader');
+    const roleCardImg = document.getElementById('myRoleCardImg');
     const roleTitle = document.getElementById('myRoleTitle');
     const roleTeam = document.getElementById('myRoleTeam');
     const roleDesc = document.getElementById('myRoleDesc');
+    const roleInstruction = document.getElementById('myRoleInstruction');
     const aliveBadge = document.getElementById('myAliveBadge');
 
     if (!self || !self.role) {
@@ -582,9 +598,14 @@ function renderRoleCard(self) {
             headerBadge.className = 'badge bg-secondary font-mono';
             headerBadge.textContent = 'ОЖИДАНИЕ...';
         }
+        if (roleCardImg) {
+            roleCardImg.src = '../images/mafia/civilian.jpg';
+            roleCardImg.alt = 'Ожидание раздачи...';
+        }
         if (roleTitle) roleTitle.textContent = 'Ожидание раздачи...';
         if (roleTeam) roleTeam.textContent = 'КОМАНДА: —';
         if (roleDesc) roleDesc.textContent = 'Роли будут распределены ведущим после запуска партии.';
+        if (roleInstruction) roleInstruction.textContent = 'Ожидайте раздачи ролей ведущим.';
         return;
     }
 
@@ -604,15 +625,22 @@ function renderRoleCard(self) {
         headerBadge.className = `badge font-mono ${colors.badge}`;
         headerBadge.textContent = info.title.toUpperCase();
     }
+    if (roleCardImg) {
+        roleCardImg.src = info.img || '../images/mafia/civilian.jpg';
+        roleCardImg.alt = info.title;
+    }
     if (roleTitle) {
         roleTitle.textContent = info.title;
-        roleTitle.className = `h5 fw-bold mb-0 ${self.role === 'mafia' ? 'text-danger' : (self.role === 'sheriff' ? 'text-info' : 'text-white')}`;
+        roleTitle.className = `h4 fw-bold mb-0 ${self.role === 'mafia' ? 'text-danger' : (self.role === 'sheriff' ? 'text-info' : 'text-white')}`;
     }
     if (roleTeam) {
         roleTeam.innerHTML = `КОМАНДА: <span class="${colors.team}">${info.team.toUpperCase()}</span>`;
     }
     if (roleDesc) {
         roleDesc.textContent = info.desc;
+    }
+    if (roleInstruction) {
+        roleInstruction.textContent = info.instruction || '';
     }
 
     if (aliveBadge) {
@@ -1018,12 +1046,16 @@ function renderGameOverState(room, isHost) {
     if (rolesList) {
         rolesList.innerHTML = '';
         Object.values(room.players || {}).forEach(p => {
+            const roleData = ROLE_INFO[p.role] || ROLE_INFO.civilian;
             const item = document.createElement('div');
             item.className = 'col-md-4 col-sm-6';
             item.innerHTML = `
-                <div class="p-2 rounded bg-body-tertiary border border-secondary-subtle font-mono small d-flex justify-content-between">
-                    <span>${escapeHtml(p.name)}:</span>
-                    <span class="text-white">${ROLE_INFO[p.role]?.title || '—'}</span>
+                <div class="p-2 rounded bg-body-tertiary border border-secondary-subtle font-mono small d-flex align-items-center justify-content-between gap-2">
+                    <div class="d-flex align-items-center gap-2 overflow-hidden">
+                        <img src="${roleData.img || '../images/mafia/civilian.jpg'}" alt="${roleData.title}" style="width: 28px; height: 36px; object-fit: cover; border-radius: 4px;" class="border border-secondary flex-shrink-0">
+                        <span class="text-truncate">${escapeHtml(p.name)}</span>
+                    </div>
+                    <span class="text-white fw-bold flex-shrink-0">${roleData.title}</span>
                 </div>
             `;
             rolesList.appendChild(item);
