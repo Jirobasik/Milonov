@@ -412,7 +412,7 @@ const validAnswerHashes = {
 // Тексты подсказок для всех 10 заданий
 const questHints = {
     1: "Подсказка: связано с причёской (точнее, её полным отсутствием на голове). Первая буква «Л».",
-    2: "Подсказка к мини-игре: переворачивайте карточки и находите пары: Корона 👑, Заправка ⛽, Магазин 🏪 и Котёнок 🐱. Как только откроете все 10 пар — сейф разблокируется!",
+    2: "Подсказка к мини-игре: открывайте карточки и находите парные системные модули (SYS, NET, KEY, RAM, CPU и др.). При нахождении всех 10 пар доступ к сейфу будет разблокирован.",
     3: "Подсказка: правильных вариантов ровно три. Кинотеатр и ББ семье не принадлежат.",
     4: "Подсказка: имя главы состоит всего из двух букв (на букву «Я»), а фамилия как у всей семьи.",
     5: "Подсказка: напишите Геркулесу (Jirobasik) в Discord или Telegram с вопросом о кодовой фразе для квеста.",
@@ -428,7 +428,7 @@ function takeHint(step) {
     if (revealedHints.has(step)) return;
 
     if (hintsRemaining <= 0) {
-        alert('Вы уже использовали все 3 доступные подсказки для этого прохождения!');
+        alert('Вы уже использовали все 3 доступные подсказки для этого прохождения.');
         return;
     }
 
@@ -444,7 +444,7 @@ function takeHint(step) {
     const hintBtn = el(`hintBtn${step}`);
     if (hintBtn) {
         hintBtn.disabled = true;
-        hintBtn.textContent = '💡 Подсказка открыта';
+        hintBtn.textContent = 'Подсказка открыта';
     }
 
     updateHintsDisplay();
@@ -453,7 +453,7 @@ function takeHint(step) {
 function updateHintsDisplay() {
     const badge = el('hintsRemainingBadge');
     if (badge) {
-        badge.textContent = `💡 Подсказок: ${hintsRemaining}/${MAX_HINTS}`;
+        badge.textContent = `Подсказок: ${hintsRemaining}/${MAX_HINTS}`;
     }
 }
 
@@ -461,16 +461,16 @@ function updateHintsDisplay() {
 // ─── Мини-игра: Взлом сейфа семьи (Задание 2) ────────────────────────────────
 
 const MINIGAME_ICONS = [
-    '👑', '👑', // Корона
-    '⛽', '⛽', // Заправка
-    '🏪', '🏪', // Пятерик
-    '🐱', '🐱', // Котёнок
-    '🔫', '🔫', // Амунка
-    '💰', '💰', // Общак
-    '🏎', '🏎', // Патрики
-    '🎖', '🎖', // ВС РФ
-    '💼', '💼', // Бизнес
-    '🏛', '🏛'  // Семейный особняк
+    'SYS', 'SYS',
+    'NET', 'NET',
+    'KEY', 'KEY',
+    'RAM', 'RAM',
+    'CPU', 'CPU',
+    'LOG', 'LOG',
+    'HEX', 'HEX',
+    'DEV', 'DEV',
+    'SEC', 'SEC',
+    'HUB', 'HUB'
 ];
 let minigameFlippedCards = [];
 let minigameMatchedPairs = 0;
@@ -505,7 +505,7 @@ function initMemoryMinigame() {
         card.setAttribute('data-icon', icon);
         card.setAttribute('data-index', String(idx));
         card.innerHTML = `
-            <span class="card-back">🔒</span>
+            <span class="card-back"><i class="bi bi-shield-lock"></i></span>
             <span class="card-front">${icon}</span>
         `;
         card.addEventListener('click', () => onMemoryCardClick(card));
@@ -541,13 +541,13 @@ function onMemoryCardClick(card) {
                 minigameFlippedCards = [];
                 minigameIsLocked = false;
 
-                // Если все 4 пары найдены
+                // Если все 10 пар найдены
                 if (minigameMatchedPairs === 10) {
                     if (el('minigameSuccessBox')) {
                         el('minigameSuccessBox').style.display = 'block';
                     }
                     if (el('minigamePairsCount')) {
-                        el('minigamePairsCount').textContent = '🎉 Сейф открыт! 10 из 10';
+                        el('minigamePairsCount').textContent = 'Сейф разблокирован: 10 из 10 пар';
                     }
                 }
             }, 300);
@@ -569,16 +569,16 @@ const CIRCUIT_ROWS = 8;
 const CIRCUIT_COLS = 8;
 
 const CIRCUIT_WIRES = [
-    { id: 1, name: 'Питание', color: '#e74c3c', icon: '🔴', start: [0, 0], end: [3, 0] },
-    { id: 2, name: 'Зажигание', color: '#3498db', icon: '🔵', start: [0, 7], end: [7, 7] },
-    { id: 3, name: 'Стартер', color: '#f1c40f', icon: '🟡', start: [7, 0], end: [6, 2] },
-    { id: 4, name: 'ЭБУ', color: '#2ecc71', icon: '🟢', start: [5, 5], end: [4, 3] },
-    { id: 5, name: 'Турбина', color: '#9b59b6', icon: '🟣', start: [2, 2], end: [3, 4] },
-    { id: 6, name: 'Нитро', color: '#e67e22', icon: '🟠', start: [0, 6], end: [3, 6] },
-    { id: 7, name: 'Топливо', color: '#1abc9c', icon: '🩵', start: [0, 5], end: [0, 2] },
-    { id: 8, name: 'Охлаждение', color: '#fd79a8', icon: '🩷', start: [5, 1], end: [7, 4] },
-    { id: 9, name: 'Фары', color: '#ecf0f1', icon: '⚪', start: [0, 1], end: [3, 3] },
-    { id: 10, name: 'Кортеж', color: '#d4af37', icon: '🟤', start: [1, 5], end: [1, 2] }
+    { id: 1, name: 'Питание', color: '#e74c3c', start: [0, 0], end: [3, 0] },
+    { id: 2, name: 'Зажигание', color: '#3498db', start: [0, 7], end: [7, 7] },
+    { id: 3, name: 'Стартер', color: '#f1c40f', start: [7, 0], end: [6, 2] },
+    { id: 4, name: 'ЭБУ', color: '#2ecc71', start: [5, 5], end: [4, 3] },
+    { id: 5, name: 'Турбина', color: '#9b59b6', start: [2, 2], end: [3, 4] },
+    { id: 6, name: 'Нитро', color: '#e67e22', start: [0, 6], end: [3, 6] },
+    { id: 7, name: 'Топливо', color: '#1abc9c', start: [0, 5], end: [0, 2] },
+    { id: 8, name: 'Охлаждение', color: '#fd79a8', start: [5, 1], end: [7, 4] },
+    { id: 9, name: 'Фары', color: '#ecf0f1', start: [0, 1], end: [3, 3] },
+    { id: 10, name: 'Кортеж', color: '#d4af37', start: [1, 5], end: [1, 2] }
 ];
 
 let circuitConnectedCount = 0;
@@ -692,14 +692,14 @@ function onCircuitCellClick(r, c) {
     // 2. ПРОВЕРКА НА ОШИБКУ: Замыкание на чужой уже заблокированный провод -> СБРОС ВСЕХ
     for (const [wId, path] of Object.entries(circuitLockedPaths)) {
         if (path.includes(key)) {
-            triggerShortCircuit(`💥 ПЕРЕКРЁСТНОЕ ЗАМЫКАНИЕ! Провод ${currentWire.id} пересёк провод ${wId}! Все соединённые провода сброшены!`);
+            triggerShortCircuit(`Ошибка цепи: линия ${currentWire.id} пересекла линию ${wId}. Соединения сброшены.`);
             return;
         }
     }
 
     // 3. ПРОВЕРКА НА ОШИБКУ: Клик на чужую клемму в середине пути -> СБРОС ВСЕХ
     if (clickedEndpoint && clickedEndpoint.id !== currentWire.id && circuitCurrentPath.length > 1) {
-        triggerShortCircuit(`💥 НЕВЕРНЫЙ КОНТАКТ! Провод ${currentWire.id} замкнут на чужую цифру ${clickedEndpoint.id}! Все соединённые провода сброшены!`);
+        triggerShortCircuit(`Ошибка цепи: неверный контакт. Линия ${currentWire.id} замкнута на клемму ${clickedEndpoint.id}. Соединения сброшены.`);
         return;
     }
 
@@ -748,8 +748,8 @@ function onCircuitCellClick(r, c) {
                 el('gridWiresSuccessBox').style.display = 'block';
             }
             if (el('gridCurrentWireInfo')) {
-                el('gridCurrentWireInfo').textContent = '🎉 Все 10 проводов подключены!';
-                el('gridCurrentWireInfo').style.color = '#28a745';
+                el('gridCurrentWireInfo').textContent = 'Все 10 линий успешно подключены.';
+                el('gridCurrentWireInfo').style.color = '#10b981';
             }
         } else {
             // Находим следующий неподключённый провод
@@ -864,7 +864,7 @@ function updateCircuitStatusUI() {
     if (circuitCurrentWireIdx < CIRCUIT_WIRES.length) {
         const wire = CIRCUIT_WIRES[circuitCurrentWireIdx];
         if (el('gridCurrentWireInfo')) {
-            el('gridCurrentWireInfo').textContent = `Текущий: ${wire.icon} Провод ${wire.id} (${wire.name})`;
+            el('gridCurrentWireInfo').textContent = `Текущая: Линия ${wire.id} (${wire.name})`;
             el('gridCurrentWireInfo').style.color = wire.color;
         }
     }
@@ -1045,73 +1045,73 @@ function renderQuestStatusUI() {
 
     if (status === 'maintenance') {
         if (badge) {
-            badge.textContent = '🔴 Технические работы';
+            badge.textContent = 'Технические работы';
             badge.classList.add('status-maintenance');
         }
-        if (topBadge) topBadge.textContent = '🔴 Тех. работы (Админ-режим)';
+        if (topBadge) topBadge.textContent = 'Тех. работы (Админ-доступ)';
         if (notice) {
             notice.style.display = 'block';
-            notice.style.background = '#f8d7da';
-            notice.style.color = '#721c24';
-            notice.style.border = '1px solid #f5c6cb';
+            notice.style.background = 'rgba(244, 63, 94, 0.12)';
+            notice.style.color = '#fda4af';
+            notice.style.border = '1px solid rgba(244, 63, 94, 0.3)';
             notice.innerHTML = isAdmin 
-                ? '⚠️ <strong>Квест на тех. работах.</strong> Для обычных участников доступ закрыт, но вам он доступен как администратору для проверки.'
-                : '🛠️ <strong>Внимание!</strong> Ведутся технические работы и обновление заданий. Квест временно закрыт для прохождения.';
+                ? '<strong>Режим обслуживания.</strong> Доступ закрыт для участников, открыт для администраторов.'
+                : '<strong>Регламентные работы:</strong> ведутся технические работы. Квест временно закрыт для прохождения.';
         }
         if (btn) {
             if (isAdmin) {
                 btn.disabled = false;
                 btn.style.opacity = '1';
                 btn.style.cursor = 'pointer';
-                btn.innerHTML = '⚡ Запустить «Квест 1» (Админ-доступ)';
+                btn.innerHTML = '<i class="bi bi-play-fill me-1"></i> Запустить «Квест 1» (Админ-доступ)';
             } else {
                 btn.disabled = true;
                 btn.style.opacity = '0.6';
                 btn.style.cursor = 'not-allowed';
-                btn.innerHTML = '🔒 Идут технические работы';
+                btn.innerHTML = '<i class="bi bi-lock me-1"></i> Регламентные работы';
             }
         }
     } else if (status === 'paused') {
         if (badge) {
-            badge.textContent = '🟡 Приостановлен';
+            badge.textContent = 'Приостановлен';
             badge.classList.add('status-paused');
         }
-        if (topBadge) topBadge.textContent = '🟡 Пауза (Админ-режим)';
+        if (topBadge) topBadge.textContent = 'Пауза (Админ-доступ)';
         if (notice) {
             notice.style.display = 'block';
-            notice.style.background = '#fff3cd';
-            notice.style.color = '#856404';
-            notice.style.border = '1px solid #ffeeba';
+            notice.style.background = 'rgba(245, 158, 11, 0.12)';
+            notice.style.color = '#fcd34d';
+            notice.style.border = '1px solid rgba(245, 158, 11, 0.3)';
             notice.innerHTML = isAdmin 
-                ? '⚠️ <strong>Квест приостановлен.</strong> Доступ открыт для проверки администраторами.'
-                : '⏸️ <strong>Внимание!</strong> Ивент временно приостановлен организаторами семьи. Ожидайте возобновления!';
+                ? '<strong>Квест приостановлен.</strong> Доступ открыт для проверки администраторами.'
+                : '<strong>Внимание:</strong> ивент временно приостановлен организаторами.';
         }
         if (btn) {
             if (isAdmin) {
                 btn.disabled = false;
                 btn.style.opacity = '1';
                 btn.style.cursor = 'pointer';
-                btn.innerHTML = '⚡ Запустить «Квест 1» (Админ-доступ)';
+                btn.innerHTML = '<i class="bi bi-play-fill me-1"></i> Запустить «Квест 1» (Админ-доступ)';
             } else {
                 btn.disabled = true;
                 btn.style.opacity = '0.6';
                 btn.style.cursor = 'not-allowed';
-                btn.innerHTML = '⏸️ Ивент временно на паузе';
+                btn.innerHTML = '<i class="bi bi-pause-fill me-1"></i> Квест на паузе';
             }
         }
     } else {
         // active
         if (badge) {
-            badge.textContent = '🟢 Активен';
+            badge.textContent = 'Активен';
             badge.classList.add('status-active');
         }
-        if (topBadge) topBadge.textContent = '«Квест 1» активен';
+        if (topBadge) topBadge.textContent = 'Квест 1: Активен';
         if (notice) notice.style.display = 'none';
         if (btn) {
             btn.disabled = false;
             btn.style.opacity = '1';
             btn.style.cursor = 'pointer';
-            btn.innerHTML = '🎮 Начать «Квест 1»';
+            btn.innerHTML = '<i class="bi bi-play-fill me-1"></i> Начать «Квест 1»';
         }
     }
 }
@@ -1149,7 +1149,7 @@ function openQuest() {
         const hintBtn = el(`hintBtn${i}`);
         if (hintBtn) {
             hintBtn.disabled = false;
-            hintBtn.textContent = '💡 Взять подсказку';
+            hintBtn.textContent = 'Взять подсказку';
         }
     }
 
@@ -1263,7 +1263,7 @@ function initProfilePage() {
         if (el('statRank')) el('statRank').textContent = 'Не пройден';
     }
 
-    // 👑 Проверка и отображение панели администратора
+    // Проверка и отображение панели администратора
     const adminMode = isCurrentAdmin();
     if (adminMode) {
         if (el('profileAdminBadge')) el('profileAdminBadge').style.display = 'inline-flex';
@@ -1457,15 +1457,15 @@ async function renderAdminUsersTable() {
 
         let actionButtons = '';
         if (u.userId === currentUserId) {
-            actionButtons = '<small class="text-muted">Это вы</small>';
+            actionButtons = '<small class="text-muted">Текущая сессия</small>';
         } else if (isFounder) {
-            actionButtons = '<span class="badge badge-secondary">Основатель (защищён)</span>';
+            actionButtons = '<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">Основатель</span>';
         } else {
             actionButtons = `
-                <button type="button" class="btn-table-grant btn-toggle-admin" data-uid="${escapeHtml(u.userId)}" title="Переключить роль">${isAdm ? 'Снять админа' : '👑 Дать админа'}</button>
-                <button type="button" class="${isBanned ? 'btn-table-unban btn-unban-user' : 'btn-table-ban btn-ban-user'}" data-uid="${escapeHtml(u.userId)}">${isBanned ? '✅ Разбан' : '🚫 Бан'}</button>
-                <button type="button" class="btn-table-reset-pwd btn-reset-pwd" data-uid="${escapeHtml(u.userId)}" title="Сбросить пароль на 123456">🔑 Пароль</button>
-                <button type="button" class="btn-table-del btn-del-user" data-uid="${escapeHtml(u.userId)}">Удалить</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary btn-toggle-admin me-1" data-uid="${escapeHtml(u.userId)}" title="Переключить роль">${isAdm ? 'Отозвать роль' : 'Назначить админом'}</button>
+                <button type="button" class="btn btn-sm ${isBanned ? 'btn-outline-success btn-unban-user' : 'btn-outline-danger btn-ban-user'} me-1" data-uid="${escapeHtml(u.userId)}">${isBanned ? 'Разблокировать' : 'Заблокировать'}</button>
+                <button type="button" class="btn btn-sm btn-outline-warning btn-reset-pwd me-1" data-uid="${escapeHtml(u.userId)}" title="Сбросить пароль на 123456">Сброс пароля</button>
+                <button type="button" class="btn btn-sm btn-outline-danger btn-del-user" data-uid="${escapeHtml(u.userId)}">Удалить</button>
             `;
         }
 
@@ -1473,8 +1473,8 @@ async function renderAdminUsersTable() {
             <td><strong>${escapeHtml(u.username || (u.firstName + ' ' + u.lastName))}</strong></td>
             <td><code>${escapeHtml(u.userId || '—')}</code></td>
             <td>${escapeHtml(u.email || '—')}</td>
-            <td>${isAdm ? '<span class="badge badge-warning" style="color: #222; font-weight: 800;">👑 Админ</span>' : '<span class="text-muted">Участник</span>'}</td>
-            <td>${isBanned ? '<span class="badge badge-danger">🚫 Заблокирован</span>' : '<span class="badge badge-success">Активен</span>'}</td>
+            <td>${isAdm ? '<span class="badge bg-secondary font-mono">Администратор</span>' : '<span class="text-muted">Участник</span>'}</td>
+            <td>${isBanned ? '<span class="badge bg-danger">Заблокирован</span>' : '<span class="badge bg-success">Активен</span>'}</td>
             <td>${actionButtons}</td>
         `;
         tbody.appendChild(tr);
@@ -1516,7 +1516,7 @@ function toggleAdminRole(uid) {
     }
 
     renderAdminUsersTable();
-    alert(`Права администратора для ${targetUser.username} успешно ${targetUser.isAdmin ? 'ВЫДАНЫ 👑' : 'ОТОЗВАНЫ'}.`);
+    alert(`Права администратора для ${targetUser.username} успешно ${targetUser.isAdmin ? 'выданы.' : 'отозваны.'}`);
 }
 
 function toggleBanUser(uid) {
@@ -1536,7 +1536,7 @@ function toggleBanUser(uid) {
     }
 
     renderAdminUsersTable();
-    alert(`Пользователь ${targetUser.username} ${targetUser.isBanned ? 'ЗАБЛОКИРОВАН 🚫' : 'РАЗБЛОКИРОВАН ✅'}.`);
+    alert(`Пользователь ${targetUser.username} ${targetUser.isBanned ? 'заблокирован.' : 'разблокирован.'}`);
 }
 
 async function resetUserPassword(uid) {
@@ -1613,7 +1613,7 @@ function grantAdminByInput() {
 
     if (el('adminGrantInput')) el('adminGrantInput').value = '';
     renderAdminUsersTable();
-    alert(`Права администратора успешно выданы пользователю: ${targetUser.username}! 👑`);
+    alert(`Права администратора успешно выданы пользователю: ${targetUser.username}.`);
 }
 
 // ─── Общесемейный баннер-объявление ──────────────────────────────────────────
@@ -1658,7 +1658,7 @@ function renderGlobalFamilyAlert() {
         }
     }
 
-    banner.innerHTML = `<span class="banner-badge">📢 ВНИМАНИЕ СЕМЬИ</span> <span>${escapeHtml(text)}</span>`;
+    banner.innerHTML = `<span class="banner-badge">УВЕДОМЛЕНИЕ</span> <span>${escapeHtml(text)}</span>`;
 }
 
 // ─── Управление квестом ──────────────────────────────────────────────────────
@@ -1677,10 +1677,10 @@ async function saveAdminQuestSettings() {
     renderQuestStatusUI();
 
     const statusTitle = status === 'active' 
-        ? '🟢 Активен (доступен всем)' 
+        ? 'Активен (доступен всем)' 
         : status === 'paused' 
-            ? '🟡 Приостановлен (пауза)' 
-            : '🔴 Технические работы';
+            ? 'Приостановлен (пауза)' 
+            : 'Технические работы';
 
     alert(`Настройки квеста успешно сохранены в облаке!\nТекущий статус: ${statusTitle}`);
 }
@@ -2041,9 +2041,9 @@ window.onload = function () {
     el('adminSyncLocalToCloudBtn')?.addEventListener('click', async () => {
         if (typeof fbMigrateLocalDataToCloud === 'function') {
             const btn = el('adminSyncLocalToCloudBtn');
-            if (btn) btn.textContent = '⏳ Синхронизация...';
+            if (btn) btn.textContent = 'Синхронизация...';
             const res = await fbMigrateLocalDataToCloud();
-            if (btn) btn.textContent = '☁️ Подтянуть локальную базу в облако';
+            if (btn) btn.textContent = 'Подтянуть локальную базу в облако';
             renderAdminUsersTable();
             renderAdminRatingTable();
             alert(`Синхронизация завершена!\nВыгружено в облако: ${res.migratedUsers} новых пользователей, ${res.migratedRatings} рекордов.`);
@@ -2051,6 +2051,8 @@ window.onload = function () {
             alert('Firebase не подключен.');
         }
     });
+
+    initSpotlightCards();
 
 
     // Кнопки проверки и подсказок для каждого из 10 заданий
@@ -2078,3 +2080,20 @@ window.onload = function () {
         });
     });
 };
+
+/**
+ * Интерактивный эффект Spotlight Card (React Bits style)
+ * Отслеживает положение курсора и передает локальные координаты в CSS-переменные --mouse-x и --mouse-y.
+ */
+function initSpotlightCards() {
+    document.addEventListener('mousemove', (e) => {
+        const cards = document.querySelectorAll('.spotlight-card');
+        cards.forEach(card => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            card.style.setProperty('--mouse-x', `${x}px`);
+            card.style.setProperty('--mouse-y', `${y}px`);
+        });
+    });
+}

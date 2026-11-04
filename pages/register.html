@@ -1,191 +1,103 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
           content="default-src 'self';
-                   script-src 'self' https://code.jquery.com https://cdn.jsdelivr.net https://stackpath.bootstrapcdn.com https://www.gstatic.com;
-                   style-src  'self' https://stackpath.bootstrapcdn.com 'unsafe-inline';
+                   script-src 'self' https://cdn.jsdelivr.net https://www.gstatic.com;
+                   style-src  'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline';
+                   font-src   'self' https://cdn.jsdelivr.net https://fonts.gstatic.com data:;
                    connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com;
                    img-src    'self' data: https:;
                    object-src 'none';">
     <meta http-equiv="Referrer-Policy" content="same-origin">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
-    <title>Вход и Регистрация — Милоновы</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Авторизация в системе — Милоновы</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../css/styles.css">
-    <style>
-        .auth-card {
-            max-width: 460px;
-            margin: 0 auto;
-            text-align: left;
-        }
-        .auth-tabs {
-            display: flex;
-            gap: 6px;
-            background: rgba(13, 17, 23, 0.7);
-            padding: 5px;
-            border-radius: 0.75rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            margin-bottom: 1.5rem;
-        }
-        .auth-tab-btn {
-            flex: 1;
-            padding: 10px 16px;
-            background: transparent;
-            border: none;
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            font-weight: 600;
-            color: #8b949e;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-        }
-        .auth-tab-btn:hover {
-            color: #fff;
-            background: rgba(255, 255, 255, 0.05);
-        }
-        .auth-tab-btn.active {
-            color: #fff;
-            background: #712cf9;
-            box-shadow: 0 4px 12px rgba(113, 44, 249, 0.4);
-        }
-        .auth-field {
-            margin-bottom: 1.15rem;
-        }
-        .auth-field label {
-            display: block;
-            font-weight: 600;
-            font-size: 0.9rem;
-            margin-bottom: 0.4rem;
-            color: #c9d1d9;
-        }
-        .auth-field input {
-            width: 100%;
-            padding: 11px 14px;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 0.5rem;
-            font-size: 1rem;
-            box-sizing: border-box;
-            background: #0d1117;
-            color: #f0f6fc;
-            transition: all 0.2s;
-        }
-        .auth-field input:focus {
-            border-color: #712cf9;
-            outline: none;
-            box-shadow: 0 0 0 0.25rem rgba(113, 44, 249, 0.25);
-        }
-        .btn-auth-submit {
-            width: 100%;
-            padding: 12px;
-            background: #712cf9;
-            color: #fff;
-            border: 1px solid #712cf9;
-            border-radius: 0.5rem;
-            font-size: 1.05rem;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 0.75rem;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 14px rgba(113, 44, 249, 0.35);
-        }
-        .btn-auth-submit:hover {
-            background: #5f23d9;
-            border-color: #5f23d9;
-            color: #fff;
-            box-shadow: 0 6px 20px rgba(113, 44, 249, 0.5);
-            transform: translateY(-1px);
-        }
-        .auth-switch-text {
-            text-align: center;
-            margin-top: 1.5rem;
-            font-size: 0.95rem;
-            color: #8b949e;
-        }
-        .auth-switch-link {
-            color: #a370f7;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: underline;
-        }
-        .auth-switch-link:hover {
-            color: #c084fc;
-        }
-    </style>
 </head>
 <body>
-    <header>
-        <div class="brand-wrapper">
-            <span class="bs-logo-badge">M</span>
-            <h1>Милоновы</h1>
+    <header class="site-header">
+        <div class="container d-flex align-items-center justify-content-between">
+            <a href="../index.html" class="d-flex align-items-center gap-2 text-decoration-none">
+                <span class="brand-badge">M</span>
+                <span class="brand-title">МИЛОНОВЫ</span>
+            </a>
+            <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle font-mono">SYS.AUTH</span>
         </div>
     </header>
 
-    <main>
-        <section class="auth-card">
-            <!-- Переключатель вкладок: Вход / Регистрация -->
-            <div class="auth-tabs">
-                <button type="button" class="auth-tab-btn active" id="tabLoginBtn">Войти</button>
-                <button type="button" class="auth-tab-btn" id="tabRegisterBtn">Зарегистрироваться</button>
+    <main class="container my-5 flex-grow-1 d-flex align-items-center justify-content-center">
+        <div class="spotlight-card blur-fade" style="width: 100%; max-width: 440px;">
+            <!-- Вкладки Вход / Регистрация -->
+            <div class="d-flex p-1 mb-4 rounded bg-body-tertiary border border-secondary-subtle">
+                <button type="button" class="btn btn-sm flex-fill fw-semibold btn-light" id="tabLoginBtn">Вход</button>
+                <button type="button" class="btn btn-sm flex-fill fw-semibold text-secondary" id="tabRegisterBtn">Регистрация</button>
             </div>
 
             <!-- Форма входа -->
             <form id="loginForm">
-                <div class="auth-field">
-                    <label for="loginUsername">Email, имя пользователя или ID</label>
-                    <input type="text" id="loginUsername" placeholder="Например: 859-200 или email" required>
+                <div class="mb-3">
+                    <label class="form-label" for="loginUsername">Идентификатор (ID, никнейм или Email)</label>
+                    <input type="text" class="form-control font-mono" id="loginUsername" placeholder="Например: 264-013" required>
                 </div>
-                <div class="auth-field">
-                    <label for="loginPassword">Пароль</label>
-                    <input type="password" id="loginPassword" placeholder="Ваш пароль" required>
+                <div class="mb-3">
+                    <label class="form-label" for="loginPassword">Пароль</label>
+                    <input type="password" class="form-control" id="loginPassword" placeholder="••••••••" required>
                 </div>
-                <button type="button" id="submitLoginBtn" class="btn-auth-submit">Войти на сайт</button>
-                <p class="auth-switch-text">
-                    Ещё нет аккаунта? <span class="auth-switch-link" id="switchToRegisterLink">Зарегистрироваться</span>
-                </p>
+                <button type="button" id="submitLoginBtn" class="btn-shiny btn-shiny-primary w-100 py-2 mt-2">
+                    <i class="bi bi-box-arrow-in-right"></i> Войти в систему
+                </button>
+                <div class="text-center mt-3 small text-secondary">
+                    Нет зарегистрированного профиля? <a href="#" class="text-white text-decoration-underline" id="switchToRegisterLink">Создать аккаунт</a>
+                </div>
             </form>
 
-            <!-- Форма регистрации (скрыта по умолчанию) -->
+            <!-- Форма регистрации -->
             <form id="registerForm" style="display: none;">
-                <div class="auth-field">
-                    <label for="firstName">Имя</label>
-                    <input type="text" id="firstName" placeholder="Ваше имя" required>
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <label class="form-label" for="firstName">Имя</label>
+                        <input type="text" class="form-control" id="firstName" placeholder="Имя" required>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label" for="lastName">Фамилия</label>
+                        <input type="text" class="form-control" id="lastName" placeholder="Фамилия" required>
+                    </div>
                 </div>
-                <div class="auth-field">
-                    <label for="lastName">Фамилия</label>
-                    <input type="text" id="lastName" placeholder="Ваша фамилия" required>
+                <div class="mb-3">
+                    <label class="form-label" for="userId">Игровой ID семьи</label>
+                    <input type="text" class="form-control font-mono" id="userId" placeholder="Например: 859-200" required>
                 </div>
-                <div class="auth-field">
-                    <label for="userId">Игровой ID (номер)</label>
-                    <input type="text" id="userId" placeholder="Например: 859-200" required>
+                <div class="mb-3">
+                    <label class="form-label" for="email">Электронная почта</label>
+                    <input type="email" class="form-control font-mono" id="email" placeholder="user@milonovy.ru" required>
                 </div>
-                <div class="auth-field">
-                    <label for="email">Электронная почта</label>
-                    <input type="email" id="email" placeholder="example@mail.ru" required>
+                <div class="mb-3">
+                    <label class="form-label" for="password">Пароль (мин. 8 символов, цифра и знак)</label>
+                    <input type="password" class="form-control" id="password" placeholder="••••••••" required>
                 </div>
-                <div class="auth-field">
-                    <label for="password">Пароль</label>
-                    <input type="password" id="password" placeholder="Минимум 8 символов, цифра и спецсимвол" required>
+                <button type="button" id="registerBtn" class="btn-shiny btn-shiny-primary w-100 py-2 mt-2">
+                    <i class="bi bi-person-plus"></i> Зарегистрироваться
+                </button>
+                <div class="text-center mt-3 small text-secondary">
+                    Уже есть профиль? <a href="#" class="text-white text-decoration-underline" id="switchToLoginLink">Вернуться ко входу</a>
                 </div>
-                <button type="button" id="registerBtn" class="btn-auth-submit">Зарегистрироваться</button>
-                <p class="auth-switch-text">
-                    Уже есть аккаунт? <span class="auth-switch-link" id="switchToLoginLink">Войти</span>
-                </p>
             </form>
-        </section>
+        </div>
     </main>
 
-    <footer>
-        <p>&copy; 2026 Милоновы</p>
+    <footer class="site-footer">
+        <div class="container d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2 text-center text-sm-start font-mono small">
+            <div>&copy; 2026 MILONOV EVENT PLATFORM. Все права защищены.</div>
+            <div class="text-secondary">КОНТУР АУТЕНТИФИКАЦИИ</div>
+        </div>
     </footer>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="../js/firebase-db.js"></script>

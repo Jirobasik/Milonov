@@ -1,12 +1,13 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
           content="default-src 'self';
-                   script-src 'self' https://code.jquery.com https://cdn.jsdelivr.net https://stackpath.bootstrapcdn.com https://www.gstatic.com;
-                   style-src  'self' https://stackpath.bootstrapcdn.com 'unsafe-inline';
+                   script-src 'self' https://cdn.jsdelivr.net https://www.gstatic.com;
+                   style-src  'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline';
+                   font-src   'self' https://cdn.jsdelivr.net https://fonts.gstatic.com data:;
                    connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com;
                    img-src    'self' data: https:;
                    object-src 'none';">
@@ -14,258 +15,53 @@
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
     <title>Личный кабинет — Милоновы</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../css/styles.css">
     <style>
-        .profile-container {
-            max-width: 780px;
-            margin: 0 auto;
-            text-align: left;
-        }
-
-        .profile-header-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-        .profile-header-bar h2 {
-            margin: 0;
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #f0f6fc;
-        }
-        .admin-badge {
-            background: rgba(113, 44, 249, 0.15);
-            color: #d2a8ff;
-            border: 1px solid #712cf9;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.85rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        /* Аватарка */
-        .avatar-section {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            padding: 1.25rem;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 12px;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-        }
-        .avatar-wrapper {
-            position: relative;
-            width: 110px;
-            height: 110px;
+        .profile-avatar-box {
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             overflow: hidden;
-            border: 3px solid #712cf9;
-            box-shadow: 0 0 16px rgba(113, 44, 249, 0.35);
-            background: #161b22;
+            background-color: var(--bg-surface-elevated);
+            border: 1px solid var(--border-medium);
             flex-shrink: 0;
         }
-        .avatar-img {
+        .profile-avatar-box img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            display: block;
         }
-        .avatar-controls {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        .btn-avatar-upload {
-            background: var(--bs-purple, #712cf9);
-            color: #fff;
-            border: 1px solid var(--bs-purple, #712cf9);
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-block;
-            text-align: center;
-        }
-        .btn-avatar-upload:hover {
-            background: var(--bs-purple-hover, #5916cc);
-            color: #fff;
-            box-shadow: 0 0 12px rgba(113, 44, 249, 0.5);
-        }
-        .btn-avatar-remove {
-            background: transparent;
-            border: 1px solid #30363d;
-            color: #8b949e;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.82rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-avatar-remove:hover {
-            background: rgba(220, 53, 69, 0.15);
-            color: #ff7b72;
-            border-color: #dc3545;
-        }
-
-        /* Форма редактирования */
-        .profile-form-group {
-            margin-bottom: 1.1rem;
-        }
-        .profile-form-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 0.35rem;
-            font-size: 0.95rem;
-            color: #f0f6fc;
-        }
-        .profile-form-group input {
-            width: 100%;
-            padding: 10px 14px;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            font-size: 1rem;
-            color: #f0f6fc;
-            box-sizing: border-box;
-        }
-        .profile-form-group input:focus {
-            outline: none;
-            border-color: #712cf9;
-            box-shadow: 0 0 0 3px rgba(113, 44, 249, 0.25);
-        }
-        .profile-form-group input:read-only {
-            background: #161b22;
-            color: #8b949e;
-            cursor: not-allowed;
-            border-color: #21262d;
-        }
-
-        /* Кнопки действий */
-        .profile-actions {
-            display: flex;
-            gap: 0.75rem;
-            margin-top: 1.5rem;
-            flex-wrap: wrap;
-        }
-        .btn-save-profile {
-            flex: 1;
-            min-width: 180px;
-            padding: 12px 20px;
-            background: var(--bs-purple, #712cf9);
-            color: #fff;
-            border: 1px solid var(--bs-purple, #712cf9);
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-        }
-        .btn-save-profile:hover {
-            background: var(--bs-purple-hover, #5916cc);
-            color: #fff;
-            box-shadow: 0 0 16px rgba(113, 44, 249, 0.5);
-        }
-        .btn-logout {
-            padding: 12px 22px;
-            background: transparent;
-            color: #ff7b72;
-            border: 1px solid #ff7b72;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-logout:hover {
-            background: #dc3545;
-            color: #fff;
-            border-color: #dc3545;
-        }
-
-        /* Блок со статистикой */
-        .user-stats-box {
-            margin-top: 2rem;
-            padding: 1.25rem;
-            background: var(--bs-card-bg, #161b22);
-            border: 1px solid var(--bs-card-border, #30363d);
-            border-left: 4px solid var(--bs-purple, #712cf9);
-            border-radius: 12px;
-            color: #f0f6fc;
-        }
-        .user-stats-box h4 {
-            margin-top: 0;
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: #f0f6fc;
-            margin-bottom: 0.75rem;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 1rem;
-        }
-        .stat-item {
-            background: #0d1117;
-            padding: 0.75rem;
-            border-radius: 8px;
-            border: 1px solid #30363d;
-            text-align: center;
-        }
-        .stat-value {
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: #a371f7;
-        }
-        .stat-label {
-            font-size: 0.8rem;
-            color: #8b949e;
-            margin-top: 0.25rem;
-        }
-
-        /* 👑 Панель Администратора */
-        
-        /* Табы в админ-панели */
         .admin-tabs-nav {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.35rem;
             flex-wrap: wrap;
-            margin-bottom: 1.25rem;
-            border-bottom: 1px solid #30363d;
+            border-bottom: 1px solid var(--border-subtle);
             padding-bottom: 0.75rem;
+            margin-bottom: 1.25rem;
         }
         .admin-tab-btn {
-            background: #0d1117;
-            border: 1px solid #30363d;
-            color: #c9d1d9;
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
+            background-color: var(--bg-base);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.4rem 0.85rem;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.15s ease;
         }
         .admin-tab-btn:hover {
-            background: #21262d;
-            color: #fff;
-            border-color: #712cf9;
+            color: var(--text-primary);
+            border-color: var(--border-medium);
+            background-color: var(--bg-surface-elevated);
         }
         .admin-tab-btn.active {
-            background: var(--bs-purple, #712cf9);
-            color: #fff;
-            border-color: var(--bs-purple, #712cf9);
-            box-shadow: 0 0 10px rgba(113, 44, 249, 0.4);
+            color: #ffffff;
+            background-color: var(--bg-subtle);
+            border-color: #ffffff;
+            font-weight: 600;
         }
         .admin-tab-content {
             display: none;
@@ -273,324 +69,176 @@
         .admin-tab-content.active {
             display: block;
         }
-        .btn-table-ban {
-            background: #fd7e14;
-            color: #fff;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            cursor: pointer;
-            margin: 2px;
-        }
-        .btn-table-unban {
-            background: #198754;
-            color: #fff;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            cursor: pointer;
-            margin: 2px;
-        }
-        .btn-table-reset-pwd {
-            background: #0dcaf0;
-            color: #000;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            cursor: pointer;
-            margin: 2px;
-        }
-
-        .admin-panel-card {
-            margin-top: 2.5rem;
-            padding: 1.5rem;
-            background: var(--bs-card-bg, #161b22);
-            border: 1px solid var(--bs-card-border, #30363d);
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-            color: #f0f6fc;
-        }
-        .admin-panel-title {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.25rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid #30363d;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        .admin-panel-title h3 {
-            margin: 0;
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: #f0f6fc;
-        }
-        .admin-section-block {
-            margin-bottom: 1.5rem;
-            padding: 1.25rem;
-            background: #0d1117;
-            border-radius: 8px;
-            border: 1px solid #30363d;
-            color: #f0f6fc;
-        }
-        .admin-section-block h4 {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #f0f6fc;
-            margin-bottom: 0.75rem;
-        }
-        .admin-section-block textarea, .admin-section-block input, .admin-section-block select {
-            width: 100%;
-            padding: 9px 12px;
-            background: #161b22;
-            border: 1px solid #30363d;
-            color: #f0f6fc;
-            border-radius: 6px;
-            margin-bottom: 0.75rem;
-            font-size: 0.95rem;
-            box-sizing: border-box;
-        }
-        .admin-section-block textarea:focus, .admin-section-block input:focus, .admin-section-block select:focus {
-            outline: none;
-            border-color: #712cf9;
-            box-shadow: 0 0 0 3px rgba(113, 44, 249, 0.25);
-        }
-        .admin-btn-row {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-        .btn-admin-action {
-            background: var(--bs-purple, #712cf9);
-            color: #fff;
-            border: 1px solid var(--bs-purple, #712cf9);
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-admin-action:hover {
-            background: var(--bs-purple-hover, #5916cc);
-            color: #fff;
-            box-shadow: 0 0 10px rgba(113, 44, 249, 0.5);
-        }
-        .btn-admin-danger {
-            background: #dc3545;
-            color: #fff;
-            border: 1px solid #dc3545;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-admin-danger:hover {
-            background: #bd2130;
-        }
-
-        .btn-table-grant {
-            background: var(--bs-purple, #712cf9);
-            color: #fff;
-            border: 1px solid var(--bs-purple, #712cf9);
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-right: 4px;
-            transition: all 0.2s;
-        }
-        .btn-table-grant:hover {
-            background: var(--bs-purple-hover, #5916cc);
-        }
-        .btn-table-revoke {
-            background: #484f58;
-            color: #fff;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            margin-right: 4px;
-            transition: all 0.2s;
-        }
-        .btn-table-revoke:hover {
-            background: #30363d;
-        }
-        .admin-grant-box {
-            margin-top: 1rem;
-            padding: 1rem;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-left: 3px solid #712cf9;
-            border-radius: 8px;
-            color: #f0f6fc;
-        }
-
-        /* Таблица в админке */
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-            color: #f0f6fc;
-        }
-        .admin-table th, .admin-table td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #21262d;
-            text-align: left;
-        }
-        .admin-table th {
-            background: #0d1117;
-            font-weight: 700;
-            color: #f0f6fc;
-            border-bottom: 2px solid #30363d;
-        }
-        .btn-table-del {
-            background: #dc3545;
-            color: #fff;
-            border: none;
-            padding: 4px 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-        }
-        .btn-table-del:hover {
-            background: #bd2130;
-        }
     </style>
 </head>
 <body>
-    <header>
-        <div class="header-user-bar">
-            <a href="profile.html" class="header-user-badge" title="Личный кабинет">
-                <span>Профиль</span>
-                <img class="header-avatar-img userHeaderAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23712cf9'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23fff'/%3E%3Cpath d='M20 85 C20 62 34 58 50 58 C66 58 80 62 80 85 Z' fill='%23fff'/%3E%3C/svg%3E" alt="Аватар">
-            </a>
+    <header class="site-header">
+        <div class="container d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+                <a href="../index.html" class="d-flex align-items-center gap-2 text-decoration-none">
+                    <span class="brand-badge">M</span>
+                    <span class="brand-title">МИЛОНОВЫ</span>
+                </a>
+                <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle font-mono d-none d-sm-inline-block">SYS.v1.0</span>
+            </div>
+            
+            <nav class="d-none d-md-block">
+                <ul class="site-nav">
+                    <li><a href="../index.html">Главная</a></li>
+                    <li><a href="quest.html">Ивенты</a></li>
+                    <li><a href="rating.html">Рейтинг</a></li>
+                    <li><a href="rules.html">Регламент</a></li>
+                    <li><a href="about.html">О системе</a></li>
+                    <li><a href="contact.html">Контакты</a></li>
+                </ul>
+            </nav>
+
+            <div>
+                <a href="profile.html" class="user-nav-badge active" title="Личный кабинет">
+                    <img class="header-avatar userHeaderAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%2327272a'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23a1a1aa'/%3E%3Cpath d='M20 85 C20 62 34 58 50 58 C66 58 80 62 80 85 Z' fill='%23a1a1aa'/%3E%3C/svg%3E" alt="Avatar">
+                    <span class="d-none d-sm-inline">Профиль</span>
+                </a>
+            </div>
         </div>
-        <div class="brand-wrapper">
-            <span class="bs-logo-badge">M</span>
-            <h1>Милоновы</h1>
-        </div>
-        <nav>
-            <ul>
+
+        <!-- Мобильная навигация -->
+        <div class="container d-md-none pt-2 mt-2 border-top border-secondary-subtle">
+            <ul class="site-nav flex-wrap justify-content-center">
                 <li><a href="../index.html">Главная</a></li>
-                <li><a href="about.html">О нас</a></li>
-                <li><a href="contact.html">Контакты</a></li>
-                <li><a href="rules.html">Устав семьи</a></li>
                 <li><a href="quest.html">Ивенты</a></li>
                 <li><a href="rating.html">Рейтинг</a></li>
+                <li><a href="rules.html">Регламент</a></li>
+                <li><a href="contact.html">Контакты</a></li>
             </ul>
-        </nav>
-    </header>
-            </ul>
-        </nav>
+        </div>
     </header>
 
-    <main>
-        <section class="profile-container">
-            <div class="profile-header-bar">
-                <h2>Личный кабинет</h2>
-                <span id="profileAdminBadge" class="admin-badge" style="display: none;">👑 Администратор семьи</span>
-            </div>
-
-            <!-- Секция редактирования аватарки -->
-            <div class="avatar-section">
-                <div class="avatar-wrapper">
-                    <img id="profileAvatarImg" class="avatar-img" src="" alt="Аватарка пользователя">
+    <main class="container my-5 flex-grow-1">
+        <div class="blur-fade">
+            <!-- Header Title -->
+            <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+                <div>
+                    <h1 class="h3 fw-bold mb-1">Личный кабинет участника</h1>
+                    <p class="text-secondary small mb-0">Управление профилем, учетными данными и персональной статистикой.</p>
                 </div>
-                <div class="avatar-controls">
-                    <label for="avatarFileInput" class="btn-avatar-upload">📷 Загрузить аватарку</label>
-                    <input type="file" id="avatarFileInput" accept="image/*" style="display: none;">
-                    <button type="button" id="removeAvatarBtn" class="btn-avatar-remove">Удалить фото</button>
-                    <small class="text-muted">Форматы: JPG, PNG, WEBP (до 2 МБ)</small>
+                <div id="profileAdminBadge" style="display: none;">
+                    <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle font-mono px-3 py-2">
+                        <i class="bi bi-shield-lock-fill me-1"></i> АДМИНИСТРАТОР СИСТЕМЫ
+                    </span>
                 </div>
             </div>
 
-            <!-- Форма редактирования данных профиля -->
-            <form id="profileForm">
-                <div class="profile-form-group">
-                    <label for="profileFirstName">Имя</label>
-                    <input type="text" id="profileFirstName" placeholder="Ваше имя" required>
-                </div>
-
-                <div class="profile-form-group">
-                    <label for="profileLastName">Фамилия</label>
-                    <input type="text" id="profileLastName" placeholder="Ваша фамилия" required>
-                </div>
-
-                <div class="profile-form-group">
-                    <label for="profileUserId">Игровой ID (номер)</label>
-                    <input type="text" id="profileUserId" readonly>
-                </div>
-
-                <div class="profile-form-group">
-                    <label for="profileEmail">Электронная почта</label>
-                    <input type="email" id="profileEmail" readonly>
-                </div>
-
-                <div class="profile-actions">
-                    <button type="button" id="saveProfileBtn" class="btn-save-profile">💾 Сохранить изменения</button>
-                    <button type="button" id="logoutBtn" class="btn-logout">🚪 Выйти из профиля</button>
-                </div>
-            </form>
-
-            <!-- Блок игровой статистики участника -->
-            <div class="user-stats-box">
-                <h4>Статистика прохождения «Квеста 1»</h4>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div id="statBestTime" class="stat-value">—</div>
-                        <div class="stat-label">Лучшее время</div>
-                    </div>
-                    <div class="stat-item">
-                        <div id="statRank" class="stat-value">—</div>
-                        <div class="stat-label">Место в рейтинге</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 👑 Панель Администратора (доступна только администраторам) -->
-            <div id="adminPanelSection" class="admin-panel-card" style="display: none;">
-                <div class="admin-panel-title">
-                    <div>
-                        <h3 style="margin: 0; font-size: 1.4rem; font-weight: 800; color: #f0f6fc;">👑 Панель Администратора</h3>
-                        <p class="text-muted" style="margin: 0.25rem 0 0; font-size: 0.88rem;">Полный доступ к управлению сайтом, контентом, пользователями и ивентами</p>
-                    </div>
-                    <span class="badge" style="font-size: 0.85rem; padding: 6px 12px; font-weight: 700; background: rgba(113, 44, 249, 0.2); color: #d2a8ff; border: 1px solid #712cf9; border-radius: 20px;">Режим Супер-Администратора</span>
-                </div>
-
-                <!-- Навигация по модулям админки -->
-                <div class="admin-tabs-nav">
-                    <button type="button" class="admin-tab-btn active" data-tab="tab-users">👥 Пользователи и права</button>
-                    <button type="button" class="admin-tab-btn" data-tab="tab-banner">📢 Общесемейный баннер</button>
-                    <button type="button" class="admin-tab-btn" data-tab="tab-quest">🎮 Ивенты и квест</button>
-                    <button type="button" class="admin-tab-btn" data-tab="tab-rating">🏆 Рейтинг</button>
-                    <button type="button" class="admin-tab-btn" data-tab="tab-cms">📝 Редактор страниц</button>
-                    <button type="button" class="admin-tab-btn" data-tab="tab-backup">💾 Бэкап и система</button>
-                </div>
-
-                <!-- 1. Вкладка: Пользователи и права -->
-                <div class="admin-tab-content active" id="tab-users">
-                    <div class="admin-section-block">
-                        <h4>Зарегистрированные пользователи семьи</h4>
-                        <p class="text-muted" style="font-size: 0.85rem;">Управление ролями, блокировкой, сбросом паролей и удалением аккаунтов.</p>
+            <!-- Bento Layout: Profile Info + Stats -->
+            <div class="bento-grid mb-4">
+                <!-- Profile Edit Card (8 cols) -->
+                <div class="bento-col-8">
+                    <div class="spotlight-card h-100">
+                        <h2 class="h5 fw-semibold mb-3">Учетные данные</h2>
                         
-                        <div style="overflow-x: auto;">
-                            <table class="admin-table">
+                        <!-- Avatar Section -->
+                        <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded bg-body-tertiary border border-secondary-subtle">
+                            <div class="profile-avatar-box">
+                                <img id="profileAvatarImg" src="" alt="Avatar">
+                            </div>
+                            <div>
+                                <label for="avatarFileInput" class="btn-shiny btn-sm me-2">
+                                    <i class="bi bi-upload"></i> Загрузить фото
+                                </label>
+                                <input type="file" id="avatarFileInput" accept="image/*" style="display: none;">
+                                <button type="button" id="removeAvatarBtn" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                <div class="text-secondary small mt-1 font-mono">PNG, JPG или WEBP до 2 МБ</div>
+                            </div>
+                        </div>
+
+                        <!-- Form -->
+                        <form id="profileForm">
+                            <div class="row g-3 mb-3">
+                                <div class="col-sm-6">
+                                    <label class="form-label" for="profileFirstName">Имя</label>
+                                    <input type="text" class="form-control" id="profileFirstName" required>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label" for="profileLastName">Фамилия</label>
+                                    <input type="text" class="form-control" id="profileLastName" required>
+                                </div>
+                            </div>
+                            <div class="row g-3 mb-4">
+                                <div class="col-sm-6">
+                                    <label class="form-label" for="profileUserId">Игровой ID (закреплен)</label>
+                                    <input type="text" class="form-control font-mono" id="profileUserId" readonly>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="form-label" for="profileEmail">Электронная почта</label>
+                                    <input type="email" class="form-control font-mono" id="profileEmail" readonly>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button type="button" id="saveProfileBtn" class="btn-shiny btn-shiny-primary">
+                                    <i class="bi bi-check2"></i> Сохранить изменения
+                                </button>
+                                <button type="button" id="logoutBtn" class="btn-shiny btn-shiny-danger">
+                                    <i class="bi bi-box-arrow-right"></i> Завершить сеанс
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Stats Card (4 cols) -->
+                <div class="bento-col-4">
+                    <div class="spotlight-card h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono mb-3">ТЕЛЕМЕТРИЯ</span>
+                            <h2 class="h5 fw-semibold mb-3">Результаты испытаний</h2>
+                            
+                            <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle mb-3">
+                                <div class="font-mono small text-secondary">ЛУЧШЕЕ ВРЕМЯ КВЕСТА</div>
+                                <div id="statBestTime" class="h3 fw-bold font-mono text-white mb-0">—</div>
+                            </div>
+
+                            <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle">
+                                <div class="font-mono small text-secondary">МЕСТО В РЕЕСТРЕ</div>
+                                <div id="statRank" class="h3 fw-bold font-mono text-white mb-0">—</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-top border-secondary-subtle">
+                            <a href="quest.html" class="btn-shiny w-100 text-center">
+                                <i class="bi bi-play-fill"></i> Пройти тестирование заново
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Административная панель (только для роли Администратора) -->
+            <div id="adminPanelSection" class="spotlight-card mt-4" style="display: none;">
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom border-secondary-subtle flex-wrap gap-2">
+                    <div>
+                        <h2 class="h5 fw-bold mb-1">Консоль управления администратора</h2>
+                        <div class="text-secondary small">Контроль учетных записей, квестов, публикаций и базы данных.</div>
+                    </div>
+                    <span class="badge bg-secondary font-mono">SUPERUSER CONSOLE</span>
+                </div>
+
+                <!-- Навигация модулей -->
+                <div class="admin-tabs-nav">
+                    <button type="button" class="admin-tab-btn active" data-tab="tab-users"><i class="bi bi-people me-1"></i> Пользователи</button>
+                    <button type="button" class="admin-tab-btn" data-tab="tab-banner"><i class="bi bi-megaphone me-1"></i> Баннер</button>
+                    <button type="button" class="admin-tab-btn" data-tab="tab-quest"><i class="bi bi-controller me-1"></i> Квест</button>
+                    <button type="button" class="admin-tab-btn" data-tab="tab-rating"><i class="bi bi-trophy me-1"></i> Рейтинг</button>
+                    <button type="button" class="admin-tab-btn" data-tab="tab-cms"><i class="bi bi-file-text me-1"></i> Тексты</button>
+                    <button type="button" class="admin-tab-btn" data-tab="tab-backup"><i class="bi bi-database me-1"></i> База данных</button>
+                </div>
+
+                <!-- 1. Пользователи -->
+                <div class="admin-tab-content active" id="tab-users">
+                    <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle mb-3">
+                        <div class="table-responsive">
+                            <table class="table-custom">
                                 <thead>
                                     <tr>
-                                        <th>Пользователь</th>
+                                        <th>Участник</th>
                                         <th>ID</th>
                                         <th>Email</th>
                                         <th>Роль</th>
@@ -599,78 +247,73 @@
                                     </tr>
                                 </thead>
                                 <tbody id="adminUsersTableBody">
-                                    <!-- Заполняется динамически -->
+                                    <!-- Динамически -->
                                 </tbody>
                             </table>
                         </div>
+                    </div>
 
-                        <div class="admin-grant-box" style="margin-top: 1.25rem;">
-                            <label style="display: block; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.4rem;">➕ Быстрая выдача прав администратора по ID или Email:</label>
-                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                                <input type="text" id="adminGrantInput" placeholder="Введите ID (например: 123-456) или Email участника" style="flex: 1; min-width: 220px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 0;">
-                                <button type="button" id="adminGrantBtn" class="btn-admin-action" style="padding: 8px 16px;">👑 Выдать права</button>
-                            </div>
+                    <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle">
+                        <label class="form-label" for="adminGrantInput">Назначение прав администратора по ID или Email:</label>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <input type="text" id="adminGrantInput" class="form-control font-mono" placeholder="Введите ID (например: 859-200) или email" style="max-width: 380px;">
+                            <button type="button" id="adminGrantBtn" class="btn-shiny btn-sm">Назначить администратором</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- 2. Вкладка: Общесемейный баннер -->
+                <!-- 2. Баннер -->
                 <div class="admin-tab-content" id="tab-banner">
-                    <div class="admin-section-block">
-                        <h4>Глобальный баннер-объявление семьи</h4>
-                        <p class="text-muted" style="font-size: 0.85rem;">Транслируется вверху на всех страницах сайта для каждого посетителя.</p>
+                    <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle">
+                        <label class="form-label" for="adminBannerTextInput">Текст глобального системного уведомления:</label>
+                        <textarea id="adminBannerTextInput" class="form-control mb-3" rows="3" placeholder="Введите объявление для всех страниц..."></textarea>
                         
-                        <label><strong>Текст объявления:</strong></label>
-                        <textarea id="adminBannerTextInput" rows="3" placeholder="Например: Внимание! В эту субботу в 19:00 общий сбор семьи Милоновых в Discord!"></textarea>
-                        
-                        <div style="margin: 0.75rem 0 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <input type="checkbox" id="adminBannerActiveCheckbox" style="width: 18px; height: 18px; cursor: pointer; margin: 0;">
-                            <label for="adminBannerActiveCheckbox" style="margin: 0; font-weight: 700; cursor: pointer;">Отображать баннер на всех страницах сайта</label>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="adminBannerActiveCheckbox">
+                            <label class="form-check-label text-secondary small" for="adminBannerActiveCheckbox">
+                                Отображать оповещение в верхней панели всех страниц
+                            </label>
                         </div>
 
-                        <div class="admin-btn-row">
-                            <button type="button" id="adminSaveBannerBtn" class="btn-admin-action">📢 Сохранить и включить баннер</button>
-                            <button type="button" id="adminDisableBannerBtn" class="btn-admin-danger">Отключить баннер</button>
+                        <div class="d-flex gap-2">
+                            <button type="button" id="adminSaveBannerBtn" class="btn-shiny btn-shiny-primary btn-sm">Сохранить и включить</button>
+                            <button type="button" id="adminDisableBannerBtn" class="btn-shiny btn-shiny-danger btn-sm">Отключить</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- 3. Вкладка: Ивенты и квест -->
+                <!-- 3. Квест -->
                 <div class="admin-tab-content" id="tab-quest">
-                    <div class="admin-section-block">
-                        <h4>Управление «Квестом 1»</h4>
-                        <div style="margin-bottom: 1rem;">
-                            <label><strong>Статус доступности квеста:</strong></label>
-                            <select id="adminQuestStatusSelect" style="width: 100%; padding: 9px 12px; border: 1px solid #ced4da; border-radius: 5px; font-size: 0.95rem;">
-                                <option value="active">🟢 Активен (доступен всем)</option>
-                                <option value="paused">🟡 Приостановлен (временная пауза)</option>
-                                <option value="maintenance">🔴 Технические работы (обновление)</option>
+                    <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle">
+                        <div class="mb-3">
+                            <label class="form-label" for="adminQuestStatusSelect">Статус доступности протокола квеста:</label>
+                            <select id="adminQuestStatusSelect" class="form-select" style="max-width: 400px;">
+                                <option value="active">Активен (доступен для всех)</option>
+                                <option value="paused">Приостановлен (временная пауза)</option>
+                                <option value="maintenance">Технические работы (регламентное обслуживание)</option>
                             </select>
                         </div>
 
-                        <div style="margin-bottom: 1rem;">
-                            <label><strong>Лимит подсказок на одно прохождение (по умолчанию 3):</strong></label>
-                            <input type="number" id="adminQuestHintsInput" min="0" max="10" value="3" style="width: 120px; display: block;">
+                        <div class="mb-3">
+                            <label class="form-label" for="adminQuestHintsInput">Лимит подсказок на одно прохождение:</label>
+                            <input type="number" id="adminQuestHintsInput" class="form-control font-mono" min="0" max="10" style="max-width: 140px;">
                         </div>
 
-                        <div style="background: rgba(113, 44, 249, 0.1); border-left: 4px solid var(--bs-purple, #712cf9); padding: 0.75rem 1rem; border-radius: 6px; margin: 1rem 0; font-size: 0.92rem; color: #c9d1d9;">
-                            ⚡ <strong>Админ-кнопка пропуска заданий:</strong> При прохождении квеста в верхнем правом углу администраторам всегда доступна кнопка <code style="color: #d2a8ff; background: rgba(113,44,249,0.25); padding: 2px 6px; border-radius: 4px;">⚡ Пропустить шаг (Админ)</code>.
+                        <div class="p-3 rounded bg-subtle border border-secondary-subtle small font-mono text-secondary mb-3">
+                            Служебный доступ: администраторам при прохождении квеста доступна кнопка ручного пропуска шага.
                         </div>
 
-                        <div class="admin-btn-row">
-                            <button type="button" id="adminSaveQuestSettingsBtn" class="btn-admin-action">💾 Сохранить настройки квеста</button>
-                        </div>
+                        <button type="button" id="adminSaveQuestSettingsBtn" class="btn-shiny btn-shiny-primary btn-sm">
+                            <i class="bi bi-cloud-upload"></i> Сохранить настройки в Firestore
+                        </button>
                     </div>
                 </div>
 
-                <!-- 4. Вкладка: Управление рейтингом -->
+                <!-- 4. Рейтинг -->
                 <div class="admin-tab-content" id="tab-rating">
-                    <div class="admin-section-block">
-                        <h4>Таблица рекордов участников</h4>
-                        <p class="text-muted" style="font-size: 0.85rem;">Удаление нечестных рекордов, ручное добавление участников и полная очистка.</p>
-                        
-                        <div style="overflow-x: auto;">
-                            <table class="admin-table">
+                    <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle mb-3">
+                        <div class="table-responsive">
+                            <table class="table-custom">
                                 <thead>
                                     <tr>
                                         <th>Место</th>
@@ -680,101 +323,112 @@
                                     </tr>
                                 </thead>
                                 <tbody id="adminRatingTableBody">
-                                    <!-- Заполняется динамически -->
+                                    <!-- Динамически -->
                                 </tbody>
                             </table>
                         </div>
+                    </div>
 
-                        <div class="admin-grant-box" style="margin-top: 1.25rem;">
-                            <label style="display: block; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.4rem;">➕ Ручное добавление результата в рейтинг:</label>
-                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                                <input type="text" id="adminAddRatingUser" placeholder="Имя игрока" style="flex: 2; min-width: 160px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 0;">
-                                <input type="number" id="adminAddRatingTime" placeholder="Время (в сек, напр: 180)" style="flex: 1; min-width: 120px; padding: 8px 12px; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 0;">
-                                <button type="button" id="adminAddRatingBtn" class="btn-admin-action" style="padding: 8px 16px;">Добавить в рейтинг</button>
+                    <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle mb-3">
+                        <div class="form-label">Ручное добавление результата:</div>
+                        <div class="row g-2">
+                            <div class="col-sm-6">
+                                <input type="text" id="adminAddRatingUser" class="form-control" placeholder="Имя игрока">
+                            </div>
+                            <div class="col-sm-4">
+                                <input type="number" id="adminAddRatingTime" class="form-control font-mono" placeholder="Время (сек, напр: 180)">
+                            </div>
+                            <div class="col-sm-2">
+                                <button type="button" id="adminAddRatingBtn" class="btn-shiny btn-sm w-100 h-100">Добавить</button>
                             </div>
                         </div>
-
-                        <div class="admin-btn-row" style="margin-top: 1.25rem;">
-                            <button type="button" id="adminClearRatingBtn" class="btn-admin-danger">⚠️ Очистить всю таблицу рейтинга</button>
-                        </div>
                     </div>
+
+                    <button type="button" id="adminClearRatingBtn" class="btn-shiny btn-shiny-danger btn-sm">
+                        <i class="bi bi-trash"></i> Полная очистка таблицы рекордов
+                    </button>
                 </div>
 
-                <!-- 5. Вкладка: Редактор страниц (CMS) -->
+                <!-- 5. Тексты -->
                 <div class="admin-tab-content" id="tab-cms">
-                    <div class="admin-section-block">
-                        <h4>Главная страница (index.html)</h4>
-                        <label><strong>Заголовок на главной:</strong></label>
-                        <input type="text" id="adminHomeTitleInput" placeholder="Добро пожаловать на сайт ивентов Милоновых!">
-                        <label><strong>Приветственный текст / новость:</strong></label>
-                        <textarea id="adminHomeTextInput" rows="3" placeholder="Введите текст для главной страницы..."></textarea>
-                        <div class="admin-btn-row">
-                            <button type="button" id="adminSaveHomeTextBtn" class="btn-admin-action">💾 Сохранить текст главной</button>
-                            <button type="button" id="adminResetHomeTextBtn" class="btn-admin-danger">Сбросить</button>
+                    <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle mb-3">
+                        <h3 class="h6 fw-semibold mb-2">Главная страница (index.html)</h3>
+                        <label class="form-label" for="adminHomeTitleInput">Заголовок</label>
+                        <input type="text" id="adminHomeTitleInput" class="form-control mb-2">
+                        <label class="form-label" for="adminHomeTextInput">Сопроводительный текст</label>
+                        <textarea id="adminHomeTextInput" class="form-control mb-2" rows="2"></textarea>
+                        <div class="d-flex gap-2">
+                            <button type="button" id="adminSaveHomeTextBtn" class="btn-shiny btn-sm">Сохранить</button>
+                            <button type="button" id="adminResetHomeTextBtn" class="btn btn-sm btn-outline-secondary">Сброс</button>
                         </div>
                     </div>
 
-                    <div class="admin-section-block">
-                        <h4>Страница «О нас» (about.html)</h4>
-                        <label><strong>Дополнительный текст о семье / миссия:</strong></label>
-                        <textarea id="adminAboutTextInput" rows="3" placeholder="Введите дополнительную информацию об истории и целях семьи Милоновых..."></textarea>
-                        <div class="admin-btn-row">
-                            <button type="button" id="adminSaveAboutTextBtn" class="btn-admin-action">💾 Сохранить текст «О нас»</button>
-                            <button type="button" id="adminResetAboutTextBtn" class="btn-admin-danger">Сбросить</button>
+                    <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle mb-3">
+                        <h3 class="h6 fw-semibold mb-2">Страница «О системе» (about.html)</h3>
+                        <label class="form-label" for="adminAboutTextInput">Дополнительный текст</label>
+                        <textarea id="adminAboutTextInput" class="form-control mb-2" rows="2"></textarea>
+                        <div class="d-flex gap-2">
+                            <button type="button" id="adminSaveAboutTextBtn" class="btn-shiny btn-sm">Сохранить</button>
+                            <button type="button" id="adminResetAboutTextBtn" class="btn btn-sm btn-outline-secondary">Сброс</button>
                         </div>
                     </div>
 
-                    <div class="admin-section-block">
-                        <h4>Страница «Устав семьи» (rules.html)</h4>
-                        <label><strong>Заключительное слово / Примечание администрации:</strong></label>
-                        <textarea id="adminRulesTextInput" rows="3" placeholder="Введите специальное примечание администрации к уставу семьи..."></textarea>
-                        <div class="admin-btn-row">
-                            <button type="button" id="adminSaveRulesTextBtn" class="btn-admin-action">💾 Сохранить примечание к уставу</button>
-                            <button type="button" id="adminResetRulesTextBtn" class="btn-admin-danger">Сбросить</button>
+                    <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle">
+                        <h3 class="h6 fw-semibold mb-2">Страница «Регламент» (rules.html)</h3>
+                        <label class="form-label" for="adminRulesTextInput">Примечание администрации к уставу</label>
+                        <textarea id="adminRulesTextInput" class="form-control mb-2" rows="2"></textarea>
+                        <div class="d-flex gap-2">
+                            <button type="button" id="adminSaveRulesTextBtn" class="btn-shiny btn-sm">Сохранить</button>
+                            <button type="button" id="adminResetRulesTextBtn" class="btn btn-sm btn-outline-secondary">Сброс</button>
                         </div>
                     </div>
                 </div>
 
-                <!-- 6. Вкладка: Бэкап и система -->
+                <!-- 6. База данных -->
                 <div class="admin-tab-content" id="tab-backup">
-                    <div class="admin-section-block">
-                        <h4>Облачная синхронизация базы данных</h4>
-                        <p class="text-muted" style="font-size: 0.85rem;">Выгрузить всю локальную историю зарегистрированных пользователей и рекордов из памяти браузера в общее облако Firebase Firestore.</p>
-                        <div class="admin-btn-row" style="margin-bottom: 1.5rem;">
-                            <button type="button" id="adminSyncLocalToCloudBtn" class="btn-admin-action" style="background:#28a745; color:#fff; border-color:#28a745; font-weight: 700;">☁️ Подтянуть локальную базу в облако</button>
-                        </div>
+                    <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle mb-3">
+                        <h3 class="h6 fw-semibold mb-1">Облачная миграция базы данных</h3>
+                        <p class="text-secondary small mb-2">Выгрузка локальных данных браузера в облачное хранилище Firestore.</p>
+                        <button type="button" id="adminSyncLocalToCloudBtn" class="btn-shiny btn-sm">
+                            <i class="bi bi-cloud-arrow-up"></i> Подтянуть локальную базу в облако
+                        </button>
+                    </div>
 
-                        <h4>Резервное копирование сайта</h4>
-                        <p class="text-muted" style="font-size: 0.85rem;">Сохраните полный архив всех пользователей, таблицы рейтинга, настроек квеста и текстов сайта в один JSON-файл.</p>
-                        <div class="admin-btn-row" style="margin-bottom: 1.5rem;">
-                            <button type="button" id="adminExportBackupBtn" class="btn-admin-action">📥 Скачать резервную копию (JSON)</button>
-                        </div>
+                    <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle mb-3">
+                        <h3 class="h6 fw-semibold mb-1">Резервная копия системы (JSON)</h3>
+                        <p class="text-secondary small mb-2">Экспорт всех пользователей, рекордов и конфигураций в локальный файл.</p>
+                        <button type="button" id="adminExportBackupBtn" class="btn-shiny btn-sm">
+                            <i class="bi bi-download"></i> Экспортировать бэкап
+                        </button>
+                    </div>
 
-                        <h4>Восстановление из резервной копии</h4>
-                        <p class="text-muted" style="font-size: 0.85rem;">Загрузите ранее сохранённый JSON-файл бэкапа для полного восстановления состояния сайта.</p>
-                        <input type="file" id="adminImportBackupInput" accept=".json" style="margin-bottom: 0.75rem;">
-                        <div class="admin-btn-row" style="margin-bottom: 1.5rem;">
-                            <button type="button" id="adminImportBackupBtn" class="btn-admin-action">📤 Восстановить данные из файла</button>
-                        </div>
+                    <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle mb-3">
+                        <h3 class="h6 fw-semibold mb-1">Восстановление из файла</h3>
+                        <p class="text-secondary small mb-2">Загрузка ранее созданного JSON-архива.</p>
+                        <input type="file" id="adminImportBackupInput" accept=".json" class="form-control font-mono mb-2" style="max-width: 400px;">
+                        <button type="button" id="adminImportBackupBtn" class="btn-shiny btn-sm">Восстановить конфигурацию</button>
+                    </div>
 
-                        <h4>Сброс данных к начальному состоянию</h4>
-                        <p class="text-muted" style="font-size: 0.85rem;">Очистка кэша с обязательным сохранением аккаунтов главных основателей (Геркулеса и Александра).</p>
-                        <div class="admin-btn-row">
-                            <button type="button" id="adminFactoryResetBtn" class="btn-admin-danger">⚠️ Сброс к заводским настройкам</button>
-                        </div>
+                    <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle">
+                        <h3 class="h6 fw-semibold text-danger mb-1">Сброс к заводским параметрам</h3>
+                        <p class="text-secondary small mb-2">Очистка кэша с сохранением учетных записей основателей.</p>
+                        <button type="button" id="adminFactoryResetBtn" class="btn-shiny btn-shiny-danger btn-sm">
+                            <i class="bi bi-exclamation-triangle"></i> Сбросить параметры
+                        </button>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
     </main>
 
-    <footer>
-        <p>&copy; 2026 Милоновы</p>
+    <footer class="site-footer">
+        <div class="container d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2 text-center text-sm-start font-mono small">
+            <div>&copy; 2026 MILONOV EVENT PLATFORM. Все права защищены.</div>
+            <div class="text-secondary">ПАНЕЛЬ АДМИНИСТРИРОВАНИЯ</div>
+        </div>
     </footer>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="../js/firebase-db.js"></script>

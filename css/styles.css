@@ -1,676 +1,636 @@
 /* ============================================================================
-   ИВЕНТЫ МИЛОНОВЫХ — ДИЗАЙН-СИСТЕМА В СТИЛЕ GETBOOTSTRAP.COM
-   Modern Dark Theme with Signature Bootstrap Purple (#712cf9) & Glassmorphism
-============================================================================ */
+   MILONOV EVENT PLATFORM — DESIGN SYSTEM
+   Bootstrap 5 (data-bs-theme="dark") + React Bits Engineering UI
+   Zero Emoji · Bento Grid · Spotlight Cards · Subtle Dot Matrix
+   ============================================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
-    --bs-purple: #712cf9;
-    --bs-purple-rgb: 113, 44, 249;
-    --bs-purple-hover: #5f23d9;
-    --bs-purple-active: #511ec7;
-    --bs-purple-glow: rgba(113, 44, 249, 0.35);
+    --bg-base: #0a0a0c;
+    --bg-surface: #121316;
+    --bg-surface-elevated: #18191e;
+    --bg-subtle: #1e2026;
     
-    --bs-dark-bg: #0d1117;
-    --bs-card-bg: #161b22;
-    --bs-card-border: rgba(255, 255, 255, 0.12);
-    --bs-input-bg: #0b0e14;
-    --bs-header-bg: rgba(13, 17, 23, 0.85);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-medium: rgba(255, 255, 255, 0.14);
+    --border-strong: rgba(255, 255, 255, 0.24);
     
-    --bs-text: #e6edf3;
-    --bs-text-muted: #8b949e;
-    --bs-heading: #f0f6fc;
+    --text-primary: #f4f4f5;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
     
-    --bs-success: #2ea043;
-    --bs-warning: #f1e05a;
-    --bs-danger: #f85149;
-    --bs-info: #58a6ff;
+    --accent-blue: #3b82f6;
+    --accent-blue-subtle: rgba(59, 130, 246, 0.12);
+    --accent-emerald: #10b981;
+    --accent-emerald-subtle: rgba(16, 185, 129, 0.12);
+    --accent-amber: #f59e0b;
+    --accent-amber-subtle: rgba(245, 158, 11, 0.12);
+    --accent-rose: #f43f5e;
+    --accent-rose-subtle: rgba(244, 63, 94, 0.12);
+    
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+    
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 * {
     box-sizing: border-box;
 }
 
-body {
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif;
+html, body {
     margin: 0;
     padding: 0;
     min-height: 100vh;
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    background-color: var(--bg-base);
+    background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: 0 0;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
     display: flex;
     flex-direction: column;
-    color: var(--bs-text);
-    background-color: var(--bs-dark-bg);
-    background-image: 
-        radial-gradient(120% 80% at 50% 0%, rgba(113, 44, 249, 0.22) 0%, rgba(13, 17, 23, 0) 60%),
-        linear-gradient(180deg, rgba(13, 17, 23, 0.88) 0%, rgba(22, 27, 34, 0.95) 100%),
-        url('../images/milonovy.jpg');
-    background-size: 100% auto, 100% 100%, cover;
-    background-position: center top, center, center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
 }
 
-/* ─── Шапка и Навигация в стиле Bootstrap Docs ──────────────────────────────── */
-
-header {
-    background: var(--bs-header-bg);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--bs-card-border);
-    padding: 1rem 1.5rem 1.25rem 1.5rem;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    margin-bottom: 2rem;
-}
-
-/* Логотип Bootstrap-стиля (Фиолетовая иконка с "M" + Заголовок) */
-.brand-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    margin-bottom: 0.75rem;
-}
-
-.bs-logo-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    background: linear-gradient(135deg, #712cf9 0%, #a370f7 50%, #d63384 100%);
-    border-radius: 10px;
-    color: #fff;
-    font-weight: 900;
-    font-size: 1.5rem;
-    box-shadow: 0 4px 16px rgba(113, 44, 249, 0.45);
-    user-select: none;
-    letter-spacing: -1px;
-}
-
-header h1 {
-    margin: 0;
-    font-size: 1.75rem;
-    font-weight: 800;
-    color: #fff;
-    letter-spacing: -0.5px;
-    display: inline-flex;
-    align-items: center;
-}
-
-header h1 a {
-    color: inherit;
-    text-decoration: none;
-}
-
-/* Виджет профиля (аккаунт в углу шапки) */
-.header-user-bar {
-    position: absolute;
-    top: 1.15rem;
-    right: 1.5rem;
-    z-index: 100;
-}
-
-.header-user-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.65rem;
-    background: rgba(113, 44, 249, 0.12);
-    border: 1px solid rgba(113, 44, 249, 0.35);
-    padding: 4px 8px 4px 14px;
-    border-radius: 50rem;
-    color: #f0f6fc;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.header-user-badge:hover {
-    background: rgba(113, 44, 249, 0.28);
-    border-color: #712cf9;
-    color: #fff;
-    text-decoration: none;
-    box-shadow: 0 0 15px rgba(113, 44, 249, 0.4);
-    transform: translateY(-1px);
-}
-
-.header-avatar-img {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 1.5px solid #a370f7;
-    background: #161b22;
-    display: block;
-}
-
-@media (max-width: 768px) {
-    header {
-        position: relative;
-    }
-    .header-user-bar {
-        position: static;
-        display: flex;
-        justify-content: center;
-        margin-bottom: 0.75rem;
-    }
-}
-
-/* Меню навигации */
-nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-}
-
-nav ul li a {
-    color: #c9d1d9;
-    text-decoration: none;
-    font-weight: 500;
-    font-size: 0.95rem;
-    padding: 0.45rem 0.9rem;
-    border-radius: 0.5rem;
-    transition: all 0.2s ease;
-    display: inline-block;
-}
-
-nav ul li a:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.08);
-    text-decoration: none;
-}
-
-nav ul li a.active,
-nav ul li a[aria-current="page"] {
-    color: #fff;
-    background: rgba(113, 44, 249, 0.2);
-    border: 1px solid rgba(113, 44, 249, 0.4);
-}
-
-/* ─── Основной контейнер страниц (Bootstrap Card Look) ──────────────────────── */
-
-main {
-    padding: 2.25rem;
-    background: rgba(22, 27, 34, 0.94);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    margin: 1.5rem auto 3rem auto;
-    max-width: 860px;
-    width: 92%;
-    border-radius: 1rem;
-    border: 1px solid var(--bs-card-border);
-    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(113, 44, 249, 0.12);
-    box-sizing: border-box;
-    color: var(--bs-text);
-}
+/* ─── Типографика ─────────────────────────────────────────────────────────── */
 
 h1, h2, h3, h4, h5, h6 {
-    color: var(--bs-heading);
+    color: var(--text-primary);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+}
+
+code, kbd, samp, pre, .font-mono {
+    font-family: var(--font-mono) !important;
+}
+
+/* ─── Шапка сайта (Header & Navbar) ───────────────────────────────────────── */
+
+header.site-header {
+    background-color: rgba(10, 10, 12, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-subtle);
+    position: sticky;
+    top: 0;
+    z-index: 1050;
+    padding: 0.75rem 0;
+}
+
+.brand-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background-color: #ffffff;
+    color: #0a0a0c;
     font-weight: 700;
-    letter-spacing: -0.02em;
+    font-size: 0.95rem;
+    border-radius: 6px;
+    letter-spacing: -0.03em;
+    user-select: none;
 }
 
-main h2 {
-    font-size: 1.75rem;
-    margin-bottom: 1.25rem;
-    font-weight: 800;
+.brand-title {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    text-decoration: none;
 }
 
-p {
-    color: var(--bs-text);
-    font-size: 1.05rem;
+.site-nav {
+    display: flex;
+    gap: 0.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
 }
 
-/* ─── Кнопки в стиле getbootstrap.com ───────────────────────────────────────── */
+.site-nav a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    transition: color 0.15s ease, background-color 0.15s ease;
+}
 
-.btn,
-button.btn,
-a.btn {
+.site-nav a:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-surface-elevated);
+}
+
+.site-nav a.active {
+    color: var(--text-primary);
+    background-color: var(--bg-subtle);
+    border: 1px solid var(--border-subtle);
+}
+
+.user-nav-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    background-color: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.825rem;
+    transition: all 0.2s ease;
+}
+
+.user-nav-badge:hover {
+    color: var(--text-primary);
+    border-color: var(--border-medium);
+    background-color: var(--bg-surface-elevated);
+}
+
+.header-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--border-medium);
+}
+
+/* ─── Интерактивная Spotlight Card (React Bits) ───────────────────────────── */
+
+.spotlight-card {
+    position: relative;
+    background-color: var(--bg-surface);
+    background-image: radial-gradient(
+        480px circle at var(--mouse-x, -500px) var(--mouse-y, -500px),
+        rgba(255, 255, 255, 0.05),
+        transparent 45%
+    );
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 1.5rem;
+    overflow: hidden;
+    transition: border-color 0.2s ease, transform 0.2s var(--ease-out-expo);
+}
+
+.spotlight-card::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: radial-gradient(
+        320px circle at var(--mouse-x, -500px) var(--mouse-y, -500px),
+        rgba(255, 255, 255, 0.22),
+        transparent 40%
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.spotlight-card:hover {
+    border-color: var(--border-medium);
+}
+
+/* ─── Bento Grid Layout ───────────────────────────────────────────────────── */
+
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1rem;
+}
+
+.bento-col-12 { grid-column: span 12; }
+.bento-col-8  { grid-column: span 8; }
+.bento-col-6  { grid-column: span 6; }
+.bento-col-4  { grid-column: span 4; }
+.bento-col-3  { grid-column: span 3; }
+
+@media (max-width: 991.98px) {
+    .bento-col-8, .bento-col-6, .bento-col-4, .bento-col-3 {
+        grid-column: span 12;
+    }
+}
+
+/* ─── Микро-анимация Blur Text / Fade In (React Bits) ─────────────────────── */
+
+@keyframes blurFadeIn {
+    0% {
+        opacity: 0;
+        filter: blur(8px);
+        transform: translateY(12px);
+    }
+    100% {
+        opacity: 1;
+        filter: blur(0);
+        transform: translateY(0);
+    }
+}
+
+.blur-fade {
+    animation: blurFadeIn 0.55s var(--ease-out-expo) both;
+}
+
+.blur-fade-delay-1 { animation-delay: 0.08s; }
+.blur-fade-delay-2 { animation-delay: 0.16s; }
+.blur-fade-delay-3 { animation-delay: 0.24s; }
+
+/* ─── Кнопки в стиле Shiny / Tilted (React Bits) ──────────────────────────── */
+
+.btn-shiny {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    padding: 0.65rem 1.4rem;
-    background-color: var(--bs-purple);
-    color: #fff !important;
+    font-weight: 500;
+    font-size: 0.875rem;
+    padding: 0.55rem 1.15rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-medium);
+    background-color: var(--bg-surface-elevated);
+    color: var(--text-primary);
     text-decoration: none;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    font-size: 1rem;
-    border: 1px solid var(--bs-purple);
     cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 14px var(--bs-purple-glow);
+    overflow: hidden;
+    user-select: none;
+    transition: transform 0.18s var(--ease-out-expo), border-color 0.18s ease, background-color 0.18s ease;
 }
 
-.btn:hover,
-button.btn:hover,
-a.btn:hover {
-    background-color: var(--bs-purple-hover);
-    border-color: var(--bs-purple-hover);
-    color: #fff !important;
-    text-decoration: none;
+.btn-shiny::after {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(60deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+    transform: rotate(25deg) translateY(-100%);
+    transition: transform 0.65s var(--ease-out-expo);
+    pointer-events: none;
+}
+
+.btn-shiny:hover::after {
+    transform: rotate(25deg) translateY(100%);
+}
+
+.btn-shiny:hover {
     transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(113, 44, 249, 0.5);
+    border-color: var(--border-strong);
+    background-color: var(--bg-subtle);
+    color: #ffffff;
 }
 
-.btn:active {
-    background-color: var(--bs-purple-active);
+.btn-shiny:active {
     transform: translateY(0);
 }
 
-.btn-secondary,
-.btn-outline-light {
-    background-color: rgba(255, 255, 255, 0.08) !important;
-    border: 1px solid rgba(255, 255, 255, 0.18) !important;
-    color: #f0f6fc !important;
-    box-shadow: none !important;
-}
-
-.btn-secondary:hover,
-.btn-outline-light:hover {
-    background-color: rgba(255, 255, 255, 0.16) !important;
-    border-color: rgba(255, 255, 255, 0.3) !important;
-    color: #fff !important;
-}
-
-/* ─── Формы и поля ввода ────────────────────────────────────────────────────── */
-
-input[type="text"],
-input[type="password"],
-input[type="email"],
-input[type="number"],
-select,
-textarea {
-    width: 100%;
-    padding: 0.65rem 0.95rem;
-    background: var(--bs-input-bg) !important;
-    border: 1px solid rgba(255, 255, 255, 0.18) !important;
-    border-radius: 0.5rem !important;
-    color: #f0f6fc !important;
-    font-size: 1rem;
-    box-sizing: border-box;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-    border-color: var(--bs-purple) !important;
-    outline: none !important;
-    box-shadow: 0 0 0 0.25rem rgba(113, 44, 249, 0.25) !important;
-}
-
-label {
-    color: #c9d1d9;
+.btn-shiny-primary {
+    background-color: #ffffff;
+    color: #0a0a0c;
+    border-color: #ffffff;
     font-weight: 600;
+}
+
+.btn-shiny-primary:hover {
+    background-color: #e4e4e7;
+    color: #0a0a0c;
+    border-color: #e4e4e7;
+}
+
+.btn-shiny-danger {
+    background-color: var(--accent-rose-subtle);
+    border-color: rgba(244, 63, 94, 0.3);
+    color: #fda4af;
+}
+
+.btn-shiny-danger:hover {
+    background-color: #e11d48;
+    border-color: #e11d48;
+    color: #ffffff;
+}
+
+/* ─── Статусные индикаторы ────────────────────────────────────────────────── */
+
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.775rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--text-muted);
+}
+
+.status-active .status-dot {
+    background-color: var(--accent-emerald);
+    box-shadow: 0 0 6px var(--accent-emerald);
+}
+
+.status-paused .status-dot {
+    background-color: var(--accent-amber);
+    box-shadow: 0 0 6px var(--accent-amber);
+}
+
+.status-maintenance .status-dot {
+    background-color: var(--accent-rose);
+    box-shadow: 0 0 6px var(--accent-rose);
+}
+
+/* ─── Формы (Form Controls) ───────────────────────────────────────────────── */
+
+.form-control, .form-select {
+    background-color: var(--bg-base);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-primary);
+    border-radius: 6px;
+    padding: 0.55rem 0.85rem;
     font-size: 0.9rem;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: var(--bg-base);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: var(--text-primary);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
+    outline: none;
+}
+
+.form-control::placeholder {
+    color: var(--text-muted);
+}
+
+.form-label {
+    font-size: 0.825rem;
+    font-weight: 500;
+    color: var(--text-secondary);
     margin-bottom: 0.35rem;
-    display: block;
 }
 
-/* ─── Таблицы (Рейтинг, Пользователи) ────────────────────────────────────────── */
+/* ─── Таблицы (Tables) ────────────────────────────────────────────────────── */
 
-.rating-table,
-.table-container {
-    background: var(--bs-card-bg);
-    border: 1px solid var(--bs-card-border);
-    border-radius: 0.75rem;
-    padding: 0;
-    margin: 1.5rem auto;
-    overflow-x: auto;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-}
-
-table {
+.table-custom {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    color: var(--bs-text);
+    font-size: 0.875rem;
 }
 
-table th {
-    background: #21262d !important;
-    color: #c084fc !important;
-    font-weight: 700;
+.table-custom th {
+    background-color: var(--bg-surface-elevated);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.775rem;
     text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 0.5px;
-    padding: 12px 16px;
-    border-bottom: 2px solid rgba(113, 44, 249, 0.35) !important;
-    border-top: none !important;
+    letter-spacing: 0.05em;
+    padding: 0.65rem 1rem;
+    border-bottom: 1px solid var(--border-subtle);
 }
 
-table td {
-    padding: 12px 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-    color: #e6edf3;
-    font-size: 0.95rem;
+.table-custom td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
     vertical-align: middle;
 }
 
-table tbody tr:hover td {
-    background: rgba(113, 44, 249, 0.08) !important;
+.table-custom tbody tr:hover td {
+    background-color: rgba(255, 255, 255, 0.02);
+    color: var(--text-primary);
 }
 
-table tbody tr:last-child td {
-    border-bottom: none !important;
-}
+/* ─── Общесемейный баннер (Global Alert Banner) ────────────────────────────── */
 
-/* ─── Бейджи (Badges в стиле Bootstrap 5) ────────────────────────────────────── */
-
-.badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 0.35em 0.8em;
-    font-size: 0.8rem;
-    font-weight: 600;
-    border-radius: 50rem !important;
-}
-
-.badge-warning {
-    background: rgba(113, 44, 249, 0.2) !important;
-    color: #c084fc !important;
-    border: 1px solid rgba(113, 44, 249, 0.4) !important;
-}
-
-.badge-success {
-    background: rgba(46, 160, 67, 0.2) !important;
-    color: #3fb950 !important;
-    border: 1px solid rgba(46, 160, 67, 0.4) !important;
-}
-
-.badge-danger {
-    background: rgba(248, 81, 73, 0.2) !important;
-    color: #ff7b72 !important;
-    border: 1px solid rgba(248, 81, 73, 0.4) !important;
-}
-
-.badge-secondary {
-    background: rgba(255, 255, 255, 0.1) !important;
-    color: #8b949e !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-}
-
-/* ─── Глобальный баннер-объявление семьи ─────────────────────────────────────── */
-
-.global-family-banner {
-    background: #161b22;
-    color: #fff;
-    border-bottom: 1px solid rgba(113, 44, 249, 0.4);
-    padding: 0.75rem 1rem;
-    text-align: center;
-    font-size: 0.95rem;
-    font-weight: 600;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
-    position: relative;
-    z-index: 999;
-}
-
-.global-family-banner .banner-badge {
-    background: var(--bs-purple);
-    color: #fff;
-    padding: 3px 10px;
-    border-radius: 50rem;
-    font-weight: 700;
-    font-size: 0.8rem;
-    margin-right: 8px;
-    box-shadow: 0 2px 8px var(--bs-purple-glow);
-}
-
-.admin-dynamic-note {
-    background: rgba(113, 44, 249, 0.08);
-    border-left: 4px solid var(--bs-purple);
-    border-radius: 0.5rem;
-    padding: 1rem 1.25rem;
-    margin: 1.5rem 0;
-    font-size: 0.95rem;
-    color: #e6edf3;
-    border: 1px solid rgba(113, 44, 249, 0.2);
-    border-left-width: 4px;
-}
-
-/* ─── Модальное окно ────────────────────────────────────────────────────────── */
-
-.modal {
+#globalFamilyBanner {
     display: none;
-    position: fixed;
-    z-index: 2000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(8px);
-}
-
-.modal-content {
-    background: var(--bs-card-bg);
-    border: 1px solid var(--bs-card-border);
-    margin: 10% auto;
-    padding: 24px;
-    border-radius: 1rem;
-    width: 90%;
-    max-width: 480px;
-    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(113, 44, 249, 0.2);
-    position: relative;
-    color: var(--bs-text);
-}
-
-.close {
-    color: #8b949e;
-    float: right;
-    font-size: 26px;
-    font-weight: bold;
-    cursor: pointer;
-    line-height: 1;
-    transition: color 0.2s;
-}
-
-.close:hover {
-    color: #fff;
-}
-
-/* ─── Футер ─────────────────────────────────────────────────────────────────── */
-
-footer {
-    background: var(--bs-dark-bg);
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    color: var(--bs-text-muted);
+    background-color: var(--bg-surface-elevated);
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 0.55rem 1rem;
+    font-size: 0.85rem;
     text-align: center;
-    padding: 1.75rem 1rem;
-    width: 100%;
+    color: var(--text-primary);
+}
+
+.banner-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-subtle);
+    border-radius: 4px;
+    margin-right: 0.6rem;
+    letter-spacing: 0.05em;
+}
+
+/* ─── Подвал (Footer) ─────────────────────────────────────────────────────── */
+
+footer.site-footer {
     margin-top: auto;
-    font-size: 0.9rem;
+    border-top: 1px solid var(--border-subtle);
+    padding: 1.5rem 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    background-color: var(--bg-base);
 }
 
-footer p {
-    margin: 0;
-    color: var(--bs-text-muted);
+/* ─── Специфика Квеста и Мини-игр ─────────────────────────────────────────── */
+
+.quest-step-container {
+    display: none;
+}
+.quest-step-container.active {
+    display: block;
 }
 
-/* ─── Стили для страниц Авторизации, Профиля и Квеста ───────────────────────── */
+.memory-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin: 1.25rem auto;
+    max-width: 480px;
+}
 
-/* Вкладки в стиле Bootstrap nav-pills */
-.auth-tabs,
-.admin-tabs-nav {
+@media (max-width: 520px) {
+    .memory-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+    }
+}
+
+.memory-card {
+    aspect-ratio: 1 / 1;
+    background-color: var(--bg-base);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
     display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-    background: rgba(13, 17, 23, 0.6);
-    padding: 6px;
-    border-radius: 0.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    margin-bottom: 1.5rem;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
-.auth-tab-btn,
-.admin-tab-btn {
-    flex: 1;
-    padding: 8px 16px;
-    background: transparent;
-    border: none;
-    border-radius: 0.5rem;
+.memory-card:hover:not(.flipped):not(.matched) {
+    border-color: var(--border-strong);
+    background-color: var(--bg-surface-elevated);
+}
+
+.memory-card.flipped {
+    background-color: var(--bg-subtle);
+    border-color: var(--border-strong);
+}
+
+.memory-card.matched {
+    background-color: var(--accent-emerald-subtle);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #34d399;
+    cursor: default;
+}
+
+.memory-card .card-back {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+.memory-card .card-front {
+    display: none;
+}
+.memory-card.flipped .card-front,
+.memory-card.matched .card-front {
+    display: block;
+}
+.memory-card.flipped .card-back,
+.memory-card.matched .card-back {
+    display: none;
+}
+
+/* Сетка цепи 8x8 (Задание 9) */
+.circuit-grid-board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+    background-color: var(--bg-base);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 8px;
+    max-width: 460px;
+    margin: 1rem auto;
+    user-select: none;
+}
+
+.grid-cell {
+    aspect-ratio: 1 / 1;
+    background-color: var(--bg-surface);
+    border-radius: 4px;
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
     font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--bs-text-muted);
+    font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s ease;
+    color: var(--text-secondary);
+    transition: background-color 0.1s ease;
+}
+
+.grid-cell:hover:not(.wire-locked):not(.endpoint) {
+    background-color: var(--bg-subtle);
+    border-color: var(--border-medium);
+}
+
+.grid-cell.endpoint {
+    border-radius: 6px;
+    font-weight: 800;
+}
+
+.grid-cell.endpoint-active {
+    outline: 2px solid #ffffff;
+}
+
+.grid-cell.wire-active {
+    outline: 1px solid #ffffff;
+}
+
+.grid-cell.wire-locked {
+    opacity: 0.9;
+    cursor: default;
+}
+
+.grid-circuit-alert {
+    background-color: var(--accent-rose-subtle);
+    border: 1px solid rgba(244, 63, 94, 0.3);
+    color: #fda4af;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
     text-align: center;
+    margin-bottom: 0.75rem;
 }
 
-.auth-tab-btn:hover,
-.admin-tab-btn:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.06);
+.shake {
+    animation: shake 0.35s ease;
+}
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
 }
 
-.auth-tab-btn.active,
-.admin-tab-btn.active {
-    color: #fff;
-    background: var(--bs-purple);
-    box-shadow: 0 2px 10px var(--bs-purple-glow);
+/* Опции для Задания 3 */
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.5rem;
+    margin: 1rem 0;
 }
 
-.btn-auth-submit,
-.event-open-btn {
-    width: 100%;
-    padding: 0.75rem;
-    background: var(--bs-purple) !important;
-    color: #fff !important;
-    border: 1px solid var(--bs-purple) !important;
-    border-radius: 0.5rem;
-    font-size: 1.05rem;
-    font-weight: 600;
+.option-btn {
+    background-color: var(--bg-base);
+    border: 1px solid var(--border-subtle);
+    border-radius: 6px;
+    padding: 10px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
     cursor: pointer;
-    margin-top: 0.75rem;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 14px var(--bs-purple-glow);
-}
-
-.btn-auth-submit:hover,
-.event-open-btn:hover {
-    background: var(--bs-purple-hover) !important;
-    border-color: var(--bs-purple-hover) !important;
-    box-shadow: 0 6px 20px rgba(113, 44, 249, 0.5);
-    transform: translateY(-1px);
-}
-
-.auth-switch-text {
     text-align: center;
-    margin-top: 1.25rem;
-    font-size: 0.95rem;
-    color: var(--bs-text-muted);
+    transition: all 0.15s ease;
 }
 
-.auth-switch-link {
-    color: #a370f7;
+.option-btn:hover {
+    border-color: var(--border-medium);
+    color: var(--text-primary);
+}
+
+.option-btn.selected {
+    background-color: var(--bg-surface-elevated);
+    border-color: #ffffff;
+    color: #ffffff;
     font-weight: 600;
-    cursor: pointer;
-    text-decoration: underline;
-}
-
-.auth-switch-link:hover {
-    color: #c084fc;
-}
-
-/* Кнопки действий таблицы админки */
-.btn-table-grant {
-    background: rgba(113, 44, 249, 0.2) !important;
-    color: #c084fc !important;
-    border: 1px solid rgba(113, 44, 249, 0.4) !important;
-    border-radius: 50rem;
-    padding: 3px 10px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin: 2px;
-}
-.btn-table-grant:hover {
-    background: var(--bs-purple) !important;
-    color: #fff !important;
-}
-
-.btn-table-ban {
-    background: rgba(248, 81, 73, 0.15) !important;
-    color: #ff7b72 !important;
-    border: 1px solid rgba(248, 81, 73, 0.3) !important;
-    border-radius: 50rem;
-    padding: 3px 10px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin: 2px;
-}
-.btn-table-ban:hover {
-    background: #dc3545 !important;
-    color: #fff !important;
-}
-
-.btn-table-unban {
-    background: rgba(46, 160, 67, 0.15) !important;
-    color: #3fb950 !important;
-    border: 1px solid rgba(46, 160, 67, 0.3) !important;
-    border-radius: 50rem;
-    padding: 3px 10px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin: 2px;
-}
-.btn-table-unban:hover {
-    background: #198754 !important;
-    color: #fff !important;
-}
-
-.btn-table-reset-pwd {
-    background: rgba(255, 255, 255, 0.08) !important;
-    color: #c9d1d9 !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 50rem;
-    padding: 3px 10px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin: 2px;
-}
-.btn-table-reset-pwd:hover {
-    background: rgba(255, 255, 255, 0.16) !important;
-    color: #fff !important;
-}
-
-.btn-table-del {
-    background: rgba(248, 81, 73, 0.1) !important;
-    color: #ff7b72 !important;
-    border: 1px solid rgba(248, 81, 73, 0.25) !important;
-    border-radius: 50rem;
-    padding: 3px 10px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin: 2px;
-}
-.btn-table-del:hover {
-    background: #dc3545 !important;
-    color: #fff !important;
-}
-
-/* Карточки событий в квесте */
-.event-card {
-    background: rgba(13, 17, 23, 0.6);
-    border: 1px solid var(--bs-card-border);
-    border-radius: 0.85rem;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    text-align: left;
 }

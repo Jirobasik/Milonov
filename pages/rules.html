@@ -1,142 +1,173 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
           content="default-src 'self';
-                   script-src 'self' https://code.jquery.com https://cdn.jsdelivr.net https://stackpath.bootstrapcdn.com https://www.gstatic.com;
-                   style-src  'self' https://stackpath.bootstrapcdn.com 'unsafe-inline';
+                   script-src 'self' https://cdn.jsdelivr.net https://www.gstatic.com;
+                   style-src  'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline';
+                   font-src   'self' https://cdn.jsdelivr.net https://fonts.gstatic.com data:;
                    connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com;
                    img-src    'self' data: https:;
                    object-src 'none';">
     <meta http-equiv="Referrer-Policy" content="same-origin">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
-    <title>Устав семьи — Милоновы</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Внутренний регламент — Милоновы</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../css/styles.css">
-    <style>
-        .charter { padding: 0; }
-        .charter h1 { text-align: center; font-size: 2rem; font-weight: 900; letter-spacing: 0.05em; margin-bottom: 2rem; color: #fff; }
-        .charter article { text-align: left; background: rgba(13, 17, 23, 0.65); border: 1px solid rgba(255, 255, 255, 0.1); border-left: 4px solid var(--bs-purple); border-radius: 10px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
-        .charter article h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; border-left: 4px solid var(--bs-purple); padding-left: 0.75rem; color: #f0f6fc; }
-        .charter article p { margin-bottom: 0.6rem; color: #c9d1d9; }
-        .charter article blockquote { margin: 0.8rem 0 0; padding: 0.5rem 1rem; border-left: 3px solid rgba(113, 44, 249, 0.5); color: #8b949e; font-style: italic; background: rgba(113, 44, 249, 0.05); border-radius: 0 6px 6px 0; }
-        .charter .conclusion { background: rgba(113, 44, 249, 0.12); border: 1px solid rgba(113, 44, 249, 0.35); color: #fff; border-radius: 10px; padding: 1.5rem 2rem; margin-top: 2rem; }
-        .charter .conclusion h2 { color: #c084fc; border-left-color: var(--bs-purple); }
-        .charter .conclusion p { color: #e6edf3; }
-    </style>
 </head>
 <body>
-    <header>
-        <div class="header-user-bar">
-            <a href="profile.html" class="header-user-badge" title="Личный кабинет">
-                <span>Профиль</span>
-                <img class="header-avatar-img userHeaderAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23712cf9'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23fff'/%3E%3Cpath d='M20 85 C20 62 34 58 50 58 C66 58 80 62 80 85 Z' fill='%23fff'/%3E%3C/svg%3E" alt="Аватар">
-            </a>
+    <header class="site-header">
+        <div class="container d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+                <a href="../index.html" class="d-flex align-items-center gap-2 text-decoration-none">
+                    <span class="brand-badge">M</span>
+                    <span class="brand-title">МИЛОНОВЫ</span>
+                </a>
+                <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle font-mono d-none d-sm-inline-block">SYS.v1.0</span>
+            </div>
+            
+            <nav class="d-none d-md-block">
+                <ul class="site-nav">
+                    <li><a href="../index.html">Главная</a></li>
+                    <li><a href="quest.html">Ивенты</a></li>
+                    <li><a href="rating.html">Рейтинг</a></li>
+                    <li><a href="rules.html" class="active">Регламент</a></li>
+                    <li><a href="about.html">О системе</a></li>
+                    <li><a href="contact.html">Контакты</a></li>
+                </ul>
+            </nav>
+
+            <div>
+                <a href="profile.html" class="user-nav-badge" title="Личный кабинет">
+                    <img class="header-avatar userHeaderAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%2327272a'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23a1a1aa'/%3E%3Cpath d='M20 85 C20 62 34 58 50 58 C66 58 80 62 80 85 Z' fill='%23a1a1aa'/%3E%3C/svg%3E" alt="Avatar">
+                    <span class="d-none d-sm-inline">Профиль</span>
+                </a>
+            </div>
         </div>
-        <div class="brand-wrapper">
-            <span class="bs-logo-badge">M</span>
-            <h1>Милоновы</h1>
-        </div>
-        <nav>
-            <ul>
+
+        <!-- Мобильная навигация -->
+        <div class="container d-md-none pt-2 mt-2 border-top border-secondary-subtle">
+            <ul class="site-nav flex-wrap justify-content-center">
                 <li><a href="../index.html">Главная</a></li>
-                <li><a href="about.html">О нас</a></li>
-                <li><a href="contact.html">Контакты</a></li>
-                <li><a href="rules.html" class="active">Устав семьи</a></li>
                 <li><a href="quest.html">Ивенты</a></li>
                 <li><a href="rating.html">Рейтинг</a></li>
+                <li><a href="rules.html" class="active">Регламент</a></li>
+                <li><a href="contact.html">Контакты</a></li>
             </ul>
-        </nav>
+        </div>
     </header>
-    <main>
-        <div class="charter">
-            <h1>УСТАВ СЕМЬИ</h1>
 
-            <article>
-                <h2>Статья 1. Об идентификации</h2>
-                <p>Никнейм участника в Discord-сервере должен соответствовать игровому нику.</p>
-                <p>Семья не терпит анонимности и двойных лиц. Каждый должен знать, с кем взаимодействует. Нарушение статьи влечёт предупреждение с требованием исправления.</p>
-                <blockquote>«Твой ник — твоё лицо. Не прячь его.»</blockquote>
-            </article>
+    <main class="container my-5 flex-grow-1">
+        <div class="blur-fade">
+            <div class="mb-4">
+                <div class="d-inline-flex align-items-center gap-2 px-3 py-1 mb-2 rounded-pill bg-body-tertiary border border-secondary-subtle font-mono text-secondary small">
+                    <span>ДОКУМЕНТ: STATUTE-2026</span>
+                </div>
+                <h1 class="h3 fw-bold mb-1">Внутренний устав семьи</h1>
+                <p class="text-secondary small mb-0">Свод обязательных правил взаимодействия, субординации и информационной безопасности.</p>
+            </div>
 
-            <article>
-                <h2>Статья 2. О взаимоуважении</h2>
-                <p>Оскорбления и провокации в адрес других участников запрещены.</p>
-                <p>Конструктивный спор допускается. Переход на личности, унижения и любые формы агрессии — нет. Семья держится на взаимном уважении.</p>
-                <blockquote>«Без уважения нет семьи.»</blockquote>
-            </article>
+            <div class="bento-grid">
+                <div class="bento-col-6">
+                    <div class="spotlight-card h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono">СТАТЬЯ 01</span>
+                            <i class="bi bi-person-badge text-secondary"></i>
+                        </div>
+                        <h2 class="h5 fw-semibold mb-2">Идентификация участников</h2>
+                        <p class="text-secondary small mb-2">Никнейм участника в сервисах связи (Discord/Telegram) обязан строго соответствовать игровому никнейму семьи.</p>
+                        <div class="font-mono small text-secondary-emphasis border-start border-secondary ps-2">Анонимность и подмена профилей запрещены.</div>
+                    </div>
+                </div>
 
-            <article>
-                <h2>Статья 3. О внеполитической позиции</h2>
-                <p>Обсуждение политики в любом её проявлении запрещено.</p>
-                <p>Сервер не является платформой для политических дебатов, агитации или демонстрации взглядов. Нарушители получают предупреждение. При повторном нарушении — исключение.</p>
-                <blockquote>«Мы друг для друга, а не для повесток.»</blockquote>
-            </article>
+                <div class="bento-col-6">
+                    <div class="spotlight-card h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono">СТАТЬЯ 02</span>
+                            <i class="bi bi-people text-secondary"></i>
+                        </div>
+                        <h2 class="h5 fw-semibold mb-2">Внутренняя дисциплина</h2>
+                        <p class="text-secondary small mb-2">Оскорбления, деструктивные провокации и несанкционированные конфликты между участниками запрещены.</p>
+                        <div class="font-mono small text-secondary-emphasis border-start border-secondary ps-2">Допускается аргументированный рабочий спор без перехода на личности.</div>
+                    </div>
+                </div>
 
-            <article>
-                <h2>Статья 4. О национальном единстве</h2>
-                <p>Разжигание национальных, этнических или межрасовых конфликтов запрещено безусловно.</p>
-                <p>Происхождение участника не имеет значения. Семья не делится по крови, языку или флагу. Любые высказывания на почве ненависти влекут немедленное исключение.</p>
-                <blockquote>«Мы одна кровь. Остальное — пыль.»</blockquote>
-            </article>
+                <div class="bento-col-6">
+                    <div class="spotlight-card h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono">СТАТЬЯ 03</span>
+                            <i class="bi bi-slash-circle text-secondary"></i>
+                        </div>
+                        <h2 class="h5 fw-semibold mb-2">Внеполитический статус</h2>
+                        <p class="text-secondary small mb-2">Любые политические дискуссии, пропаганда и демонстрация полярных позиций в каналах семьи запрещены.</p>
+                        <div class="font-mono small text-secondary-emphasis border-start border-secondary ps-2">Платформа предназначена исключительно для ивентов и внутрисемейных задач.</div>
+                    </div>
+                </div>
 
-            <article>
-                <h2>Статья 5. Об информационном порядке</h2>
-                <p>Спам и флуд в любых каналах запрещены.</p>
-                <p>Участник обязан уважать чужое внимание. Сообщения должны нести смысл или быть уместными в контексте канала. Повторяющиеся, бессмысленные или засоряющие сообщения караются пиздюлями.</p>
-                <blockquote>«Тишина лучше мусора.»</blockquote>
-            </article>
+                <div class="bento-col-6">
+                    <div class="spotlight-card h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono">СТАТЬЯ 04</span>
+                            <i class="bi bi-shield-lock text-secondary"></i>
+                        </div>
+                        <h2 class="h5 fw-semibold mb-2">Конфиденциальность данных</h2>
+                        <p class="text-secondary small mb-2">Запрещена передача третьим лицам любой служебной информации, тактик, ответов квеста, логов и скриншотов.</p>
+                        <div class="font-mono small text-secondary-emphasis border-start border-secondary ps-2">Вся внутренняя информация семьи является закрытой.</div>
+                    </div>
+                </div>
 
-            <article>
-                <h2>Статья 6. О защите внутренней информации</h2>
-                <p>Запрещено разглашать любую внутреннюю информацию семьи третьим лицам.</p>
-                <p>Скриншоты, логи, голосовые записи, обсуждения тактики, состава и планов — приватны. Нарушение карается пиздюлями.</p>
-                <blockquote>«Что видел в семье — остаётся в семье.»</blockquote>
-            </article>
+                <div class="bento-col-6">
+                    <div class="spotlight-card h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono">СТАТЬЯ 05</span>
+                            <i class="bi bi-mic text-secondary"></i>
+                        </div>
+                        <h2 class="h5 fw-semibold mb-2">Порядок голосовых каналов</h2>
+                        <p class="text-secondary small mb-2">Запрещены помехи связи, крики, воспроизведение шумов и злоупотребление ненормативной лексикой в эфире.</p>
+                        <div class="font-mono small text-secondary-emphasis border-start border-secondary ps-2">Нарушитель немедленно отключается от голосового сеанса.</div>
+                    </div>
+                </div>
 
-            <article>
-                <h2>Статья 7. О разрешении конфликтов</h2>
-                <p>Любые конфликты между участниками решаются внутри семьи.</p>
-                <p>Запрещено выносить ссоры в публичные пространства, другие серверы или игровые чаты. При возникновении спора стороны обязаны обратиться к Старшему или Старшому для вынесения решения.</p>
-                <blockquote>«Сор из избы не выносят.»</blockquote>
-            </article>
+                <div class="bento-col-6">
+                    <div class="spotlight-card h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono">СТАТЬЯ 06</span>
+                            <i class="bi bi-cpu text-secondary"></i>
+                        </div>
+                        <h2 class="h5 fw-semibold mb-2">Запрет несанкционированного ПО</h2>
+                        <p class="text-secondary small mb-2">Использование любого стороннего софта, читов и эксплойтов карается перманентной блокировкой без права апелляции.</p>
+                        <div class="font-mono small text-secondary-emphasis border-start border-secondary ps-2">Принцип чистой конкуренции и честной валидации результатов.</div>
+                    </div>
+                </div>
 
-            <article>
-                <h2>Статья 8. О голосовых каналах</h2>
-                <p>Правила поведения в голосовых каналах аналогичны текстовым.</p>
-                <p>Запрещены: многократный мат в адрес других, крики, целенаправленные помехи (звукоподражания, посторонние шумы, микрофон в колонках). Нарушитель отключается от голосового канала без предупреждения.</p>
-                <blockquote>«Уважай чужой слух и тишину.»</blockquote>
-            </article>
-
-            <article>
-                <h2>Статья 9. О стороннем ПО</h2>
-                <p>Использование читов, эксплойтов и любых сторонних программ, дающих преимущество, строго запрещено.</p>
-                <p>Семья выступает за честную игру. Обнаружение использования запрещённого ПО влечёт немедленное исключение без права апелляции.</p>
-                <blockquote>«Честность выше победы.»</blockquote>
-            </article>
-
-            <article>
-                <h2>Статья 10. О рекрутинге</h2>
-                <p>Приглашать новых участников в семью можно только с разрешения Старшего или Старшого.</p>
-                <p>Каждый новый человек — ответственность того, кто его привёл. За нарушения новичка отвечает пригласивший наравне с ним.</p>
-                <blockquote>«Привёл — отвечаешь.»</blockquote>
-            </article>
-
-            <article class="conclusion">
-                <h2>Заключительное положение</h2>
-                <p>Нарушение статей Устава фиксируется участниками или администрацией. Решение о мере воздействия принимает Старший или Старшой. Право окончательной апелляции принадлежит Старшому.</p>
-            </article>
+                <div class="bento-col-12">
+                    <div class="spotlight-card">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono">ЗАКЛЮЧЕНИЕ</span>
+                            <i class="bi bi-journal-check text-secondary"></i>
+                        </div>
+                        <h2 class="h5 fw-semibold mb-2">Порядок вынесения санкций</h2>
+                        <p class="text-secondary small mb-0">
+                            Все инциденты протоколируются администрацией. Решение о применении санкций, временном ограничении прав или исключении из реестра семьи принимается руководством. Окончательное решение закреплено за основателем.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
-    <footer>
-        <p>&copy; 2026 Милоновы</p>
+
+    <footer class="site-footer">
+        <div class="container d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2 text-center text-sm-start font-mono small">
+            <div>&copy; 2026 MILONOV EVENT PLATFORM. Все права защищены.</div>
+            <div class="text-secondary">РЕГЛАМЕНТ УТВЕРЖДЕН</div>
+        </div>
     </footer>
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="../js/firebase-db.js"></script>

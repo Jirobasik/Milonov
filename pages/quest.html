@@ -1,830 +1,342 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
           content="default-src 'self';
-                   script-src 'self' https://code.jquery.com https://cdn.jsdelivr.net https://stackpath.bootstrapcdn.com https://www.gstatic.com;
-                   style-src  'self' https://stackpath.bootstrapcdn.com 'unsafe-inline';
+                   script-src 'self' https://cdn.jsdelivr.net https://www.gstatic.com;
+                   style-src  'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline';
+                   font-src   'self' https://cdn.jsdelivr.net https://fonts.gstatic.com data:;
                    connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com;
                    img-src    'self' data: https:;
                    object-src 'none';">
     <meta http-equiv="Referrer-Policy" content="same-origin">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
-    <title>Ивенты — Милоновы</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Протоколы ивентов — Милоновы</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../css/styles.css">
     <style>
-        .events-list {
-            margin-top: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-        .event-card {
-            background: var(--bs-card-bg, #161b22);
-            border: 1px solid var(--bs-card-border, #30363d);
-            border-left: 4px solid var(--bs-purple, #712cf9);
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: left;
-            color: #f0f6fc;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .event-card:hover {
-            box-shadow: 0 8px 24px rgba(113, 44, 249, 0.2);
-            border-color: var(--bs-purple, #712cf9);
-        }
-        .event-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.75rem;
-        }
-        .event-card-title {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            flex-wrap: wrap;
-        }
-        .event-card-title h3 {
-            margin: 0;
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #f0f6fc;
-        }
-        .category-badge {
-            background: var(--bs-purple, #712cf9);
-            color: #fff;
-            font-size: 0.8rem;
-            padding: 0.3rem 0.75rem;
-            border-radius: 20px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-        .category-badge.status-active {
-            background: #198754;
-            color: #fff;
-        }
-        .category-badge.status-paused {
-            background: #ffc107;
-            color: #000;
-        }
-        .category-badge.status-maintenance {
-            background: #dc3545;
-            color: #fff;
-        }
-        .category-desc {
-            color: #8b949e;
-            font-size: 1.05rem;
-            margin-bottom: 1.25rem;
-            line-height: 1.5;
-        }
-        .event-open-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 12px 24px;
-            background-color: var(--bs-purple, #712cf9);
-            color: #fff;
-            border: 1px solid var(--bs-purple, #712cf9);
-            border-radius: 8px;
-            font-size: 1.05rem;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 8px rgba(113,44,249,0.3);
-        }
-        .event-open-btn:hover {
-            background-color: var(--bs-purple-hover, #5916cc);
-            color: #fff;
-            border-color: var(--bs-purple-hover, #5916cc);
-            box-shadow: 0 0 16px rgba(113,44,249,0.5);
-        }
-
-        /* Шапка квеста, подсказки и прогресс */
-        .quest-top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.75rem;
-            border-bottom: 1px solid var(--bs-card-border, #30363d);
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-        .quest-top-right {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            flex-wrap: wrap;
-        }
-        .btn-back {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid #30363d;
-            color: #f0f6fc;
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .btn-back:hover {
-            background: rgba(255, 255, 255, 0.12);
-            color: #fff;
-            border-color: #712cf9;
-        }
-
-        .btn-admin-skip {
-            background: rgba(113, 44, 249, 0.15);
-            color: #a371f7;
-            border: 1.5px solid #712cf9;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .btn-admin-skip:hover {
-            background: #712cf9;
-            color: #fff;
-            box-shadow: 0 0 12px rgba(113, 44, 249, 0.6);
-        }
-
-        .hints-badge {
-            background: rgba(255, 193, 7, 0.15);
-            border: 1px solid rgba(255, 193, 7, 0.4);
-            color: #ffd666;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 700;
-        }
-
-        .progress-box {
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 10px;
-            padding: 0.75rem 1rem;
-            margin-bottom: 1.25rem;
-            text-align: left;
-        }
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #8b949e;
-            margin-bottom: 0.4rem;
-        }
-        .progress-bar-bg {
-            background: #21262d;
-            height: 10px;
-            border-radius: 5px;
+        .quest-step { display: none; }
+        .quest-step.active { display: block; }
+        
+        .progress-track {
+            height: 6px;
+            background-color: var(--bg-surface-elevated);
+            border-radius: 4px;
             overflow: hidden;
+            border: 1px solid var(--border-subtle);
         }
         .progress-bar-fill {
-            background: linear-gradient(90deg, #712cf9, #a371f7);
             height: 100%;
+            background-color: #ffffff;
             width: 0%;
             transition: width 0.3s ease;
-        }
-
-        /* Карточка задания */
-        .quest-box {
-            background: var(--bs-card-bg, #161b22);
-            border: 1px solid var(--bs-card-border, #30363d);
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: left;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-            color: #f0f6fc;
-        }
-        .quest-box h4 {
-            font-size: 1.15rem;
-            font-weight: 700;
-            margin-bottom: 0.4rem;
-            color: #a371f7;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-        .quest-question {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #f0f6fc;
-            margin-bottom: 1rem;
-            line-height: 1.4;
-        }
-        .interactive-info {
-            background: rgba(113, 44, 249, 0.1);
-            border-left: 4px solid var(--bs-purple, #712cf9);
-            padding: 0.75rem 1rem;
-            border-radius: 6px;
-            margin-bottom: 1rem;
-            font-size: 0.95rem;
-            color: #c9d1d9;
-        }
-        .interactive-info code {
-            background: rgba(113, 44, 249, 0.25);
-            color: #d2a8ff;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-
-        /* Блок подсказок */
-        .hint-container {
-            margin-top: 1rem;
-            padding-top: 0.75rem;
-            border-top: 1px dashed #30363d;
-        }
-        .btn-hint {
-            background: rgba(113, 44, 249, 0.12);
-            border: 1px dashed #712cf9;
-            color: #a371f7;
-            padding: 5px 12px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .btn-hint:hover:not(:disabled) {
-            background: rgba(113, 44, 249, 0.25);
-            border-color: #a371f7;
-            color: #fff;
-        }
-        .btn-hint:disabled {
-            opacity: 0.5;
-            cursor: default;
-            border-style: solid;
-            background: rgba(255,255,255,0.04);
-            color: #8b949e;
-            border-color: #30363d;
-        }
-        .hint-text {
-            margin-top: 0.6rem;
-            background: rgba(255, 193, 7, 0.1);
-            border-left: 3px solid #ffc107;
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 0.92rem;
-            color: #ffd666;
-            line-height: 1.4;
-        }
-
-        /* Поле ввода и кнопка проверки */
-        .quest-input-group {
-            display: flex;
-            gap: 0.6rem;
-            flex-wrap: wrap;
-            margin-top: 1rem;
-        }
-        .quest-box input {
-            padding: 10px 14px;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            color: #f0f6fc;
-            flex: 1;
-            min-width: 240px;
-            font-size: 1rem;
-        }
-        .quest-box input:focus {
-            outline: none;
-            border-color: #712cf9;
-            box-shadow: 0 0 0 3px rgba(113, 44, 249, 0.25);
-        }
-        .quest-box button.btn-check {
-            padding: 10px 22px;
-            background-color: var(--bs-purple, #712cf9);
-            color: #fff;
-            border: 1px solid var(--bs-purple, #712cf9);
-            border-radius: 6px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .quest-box button.btn-check:hover {
-            background-color: var(--bs-purple-hover, #5916cc);
-            box-shadow: 0 0 12px rgba(113, 44, 249, 0.5);
-        }
-
-        /* Мини-игра: Взлом сейфа */
-        .minigame-status-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding: 0.6rem 0.9rem;
-            background: #0d1117;
-            border-radius: 6px;
-            border: 1px solid #30363d;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            color: #c9d1d9;
-        }
-        .btn-minigame-reset {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid #30363d;
-            color: #c9d1d9;
-            border-radius: 5px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            padding: 4px 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .btn-minigame-reset:hover {
-            background: var(--bs-purple, #712cf9);
-            border-color: var(--bs-purple, #712cf9);
-            color: #fff;
-        }
-        .memory-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin: 1.25rem auto;
-            max-width: 460px;
-        }
-        @media (max-width: 520px) {
-            .memory-grid {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 6px;
-            }
-            .memory-card {
-                font-size: 1.6rem !important;
-            }
-        }
-        .memory-card {
-            aspect-ratio: 1 / 1;
-            background: #0d1117;
-            border: 2px solid #712cf9;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.2rem;
-            cursor: pointer;
-            user-select: none;
-            transition: all 0.2s ease;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.3);
-        }
-        .memory-card:hover:not(.flipped):not(.matched) {
-            transform: scale(1.04);
-            border-color: #a371f7;
-            box-shadow: 0 0 10px rgba(113, 44, 249, 0.4);
-        }
-        .memory-card.flipped {
-            background: #21262d;
-            border-color: #a371f7;
-        }
-        .memory-card.matched {
-            background: rgba(25, 135, 84, 0.2);
-            border-color: #198754;
-            cursor: default;
-            box-shadow: 0 0 10px rgba(25, 135, 84, 0.6);
-        }
-        .memory-card .card-back {
-            color: #a371f7;
-            font-size: 1.4rem;
-            font-weight: 800;
-        }
-        .memory-card .card-front {
-            display: none;
-        }
-        .memory-card.flipped .card-front,
-        .memory-card.matched .card-front {
-            display: block;
-        }
-        .memory-card.flipped .card-back,
-        .memory-card.matched .card-back {
-            display: none;
-        }
-        .minigame-success-box {
-            text-align: center;
-            margin-top: 1rem;
-        }
-
-        /* ─── Мини-игра Задание 9: Сетка проводки (Flow / Соединение пар) ─── */
-        .circuit-grid-wrapper {
-            margin: 1rem auto;
-            max-width: 480px;
-            overflow-x: auto;
-            padding: 4px;
-        }
-        .circuit-grid-board {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 4px;
-            background: #0d1117;
-            border: 2px solid #30363d;
-            border-radius: 12px;
-            padding: 10px;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.7), 0 4px 14px rgba(0,0,0,0.25);
-            user-select: none;
-            touch-action: manipulation;
-        }
-        .grid-cell {
-            aspect-ratio: 1 / 1;
-            background: #161b22;
-            border-radius: 6px;
-            border: 1px solid #30363d;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.15rem;
-            font-weight: 800;
-            cursor: pointer;
-            transition: background 0.12s, transform 0.12s, box-shadow 0.12s;
-            position: relative;
-            color: #eee;
-        }
-        .grid-cell:hover:not(.wire-locked):not(.endpoint) {
-            background: #21262d;
-            border-color: #712cf9;
-        }
-        .grid-cell.endpoint {
-            font-size: 1.3rem;
-            font-weight: 900;
-            border-radius: 8px;
-            cursor: pointer !important;
-            border: 2px solid #fff;
-            box-shadow: 0 0 6px currentColor;
-        }
-        .grid-cell.endpoint-active {
-            animation: endpoint-pulse 0.9s infinite alternate;
-        }
-        @keyframes endpoint-pulse {
-            from { transform: scale(1); box-shadow: 0 0 6px #712cf9; }
-            to { transform: scale(1.12); box-shadow: 0 0 16px #712cf9; }
-        }
-        .grid-cell.wire-active {
-            border-color: #fff !important;
-            box-shadow: 0 0 10px currentColor;
-        }
-        .grid-cell.wire-locked {
-            border-color: rgba(255,255,255,0.4) !important;
-            opacity: 0.95;
-            cursor: default;
-        }
-        .grid-circuit-alert {
-            background: #dc3545;
-            color: #fff;
-            padding: 10px 14px;
-            border-radius: 6px;
-            font-weight: 700;
-            font-size: 0.92rem;
-            text-align: center;
-            margin-bottom: 0.75rem;
-            box-shadow: 0 3px 10px rgba(220, 53, 69, 0.4);
-        }
-        .shake {
-            animation: shake 0.4s ease;
-        }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20%, 60% { transform: translateX(-8px); }
-            40%, 80% { transform: translateX(8px); }
-        }
-        @media (max-width: 520px) {
-            .circuit-grid-board {
-                gap: 3px;
-                padding: 6px;
-            }
-            .grid-cell {
-                font-size: 0.95rem;
-            }
-            .grid-cell.endpoint {
-                font-size: 1.05rem;
-            }
-        }
-        
-        /* Кнопки множественного выбора для Задания 3 */
-        .options-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 0.75rem;
-            margin: 1rem 0;
-        }
-        .option-btn {
-            background: #0d1117;
-            border: 2px solid #30363d;
-            border-radius: 8px;
-            padding: 12px 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            color: #c9d1d9;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            text-align: center;
-        }
-        .option-btn:hover {
-            border-color: #712cf9;
-            background: rgba(113, 44, 249, 0.1);
-            color: #fff;
-        }
-        .option-btn.selected {
-            background: var(--bs-purple, #712cf9);
-            border-color: var(--bs-purple, #712cf9);
-            color: #fff;
-            font-weight: 700;
-            box-shadow: 0 0 12px rgba(113, 44, 249, 0.4);
-        }
-
-        /* Финальный экран */
-        .quest-completed-card {
-            background: var(--bs-card-bg, #161b22);
-            border: 2px solid var(--bs-purple, #712cf9);
-            border-radius: 12px;
-            padding: 2rem;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(113, 44, 249, 0.25);
-            display: none;
-            color: #f0f6fc;
-        }
-        .quest-completed-card.active {
-            display: block;
-        }
-        .quest-completed-card h3 {
-            font-size: 1.8rem;
-            color: #f0f6fc;
-            margin-bottom: 0.75rem;
-        }
-        .time-badge {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: #fff;
-            background: var(--bs-purple, #712cf9);
-            padding: 0.4rem 1.2rem;
-            border-radius: 20px;
-            display: inline-block;
-            margin: 1rem 0;
-            box-shadow: 0 0 12px rgba(113, 44, 249, 0.4);
-        }
-        .completed-actions {
-            margin-top: 1.5rem;
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="header-user-bar">
-            <a href="profile.html" class="header-user-badge" title="Личный кабинет">
-                <span>Профиль</span>
-                <img class="header-avatar-img userHeaderAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23712cf9'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23fff'/%3E%3Cpath d='M20 85 C20 62 34 58 50 58 C66 58 80 62 80 85 Z' fill='%23fff'/%3E%3C/svg%3E" alt="Аватар">
-            </a>
+    <header class="site-header">
+        <div class="container d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+                <a href="../index.html" class="d-flex align-items-center gap-2 text-decoration-none">
+                    <span class="brand-badge">M</span>
+                    <span class="brand-title">МИЛОНОВЫ</span>
+                </a>
+                <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle font-mono d-none d-sm-inline-block">SYS.v1.0</span>
+            </div>
+            
+            <nav class="d-none d-md-block">
+                <ul class="site-nav">
+                    <li><a href="../index.html">Главная</a></li>
+                    <li><a href="quest.html" class="active">Ивенты</a></li>
+                    <li><a href="rating.html">Рейтинг</a></li>
+                    <li><a href="rules.html">Регламент</a></li>
+                    <li><a href="about.html">О системе</a></li>
+                    <li><a href="contact.html">Контакты</a></li>
+                </ul>
+            </nav>
+
+            <div>
+                <a href="profile.html" class="user-nav-badge" title="Личный кабинет">
+                    <img class="header-avatar userHeaderAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%2327272a'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23a1a1aa'/%3E%3Cpath d='M20 85 C20 62 34 58 50 58 C66 58 80 62 80 85 Z' fill='%23a1a1aa'/%3E%3C/svg%3E" alt="Avatar">
+                    <span class="d-none d-sm-inline">Профиль</span>
+                </a>
+            </div>
         </div>
-        <div class="brand-wrapper">
-            <span class="bs-logo-badge">M</span>
-            <h1>Милоновы</h1>
-        </div>
-        <nav>
-            <ul>
+
+        <!-- Мобильная навигация -->
+        <div class="container d-md-none pt-2 mt-2 border-top border-secondary-subtle">
+            <ul class="site-nav flex-wrap justify-content-center">
                 <li><a href="../index.html">Главная</a></li>
-                <li><a href="about.html">О нас</a></li>
-                <li><a href="contact.html">Контакты</a></li>
-                <li><a href="rules.html">Устав семьи</a></li>
                 <li><a href="quest.html" class="active">Ивенты</a></li>
                 <li><a href="rating.html">Рейтинг</a></li>
+                <li><a href="rules.html">Регламент</a></li>
+                <li><a href="contact.html">Контакты</a></li>
             </ul>
-        </nav>
+        </div>
     </header>
 
-    <main>
-        <section>
-            <h2>Ивенты семьи</h2>
-
-            <!-- Список доступных подразделов ивентов -->
-            <div id="eventsList" class="events-list">
-                <div class="event-card">
-                    <div class="event-card-header">
-                        <div class="event-card-title">
-                            <h3>Квест 1</h3>
-                            <span class="category-badge" id="questStatusBadge">Активен</span>
-                        </div>
+    <main class="container my-5 flex-grow-1">
+        <div class="blur-fade">
+            <!-- Список доступных ивентов -->
+            <div id="eventsList">
+                <div class="mb-4">
+                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1 mb-2 rounded-pill bg-body-tertiary border border-secondary-subtle font-mono text-secondary small">
+                        <span>МОДУЛИ ТЕСТИРОВАНИЯ</span>
                     </div>
-                    <p class="category-desc" id="questDescText">
-                        Испытание для участников семьи: 10 заданий на знание семьи Милоновых, логику и внимательность.
-                        Пройдите все вопросы на время и зафиксируйте свой рекорд в таблице рейтинга!
-                        Доступно 3 подсказки на время прохождения.
+                    <h1 class="h3 fw-bold mb-1">Доступные испытания</h1>
+                    <p class="text-secondary small mb-0">Выберите активный регламентный протокол для прохождения на время.</p>
+                </div>
+
+                <div class="spotlight-card">
+                    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono">ПРОТОКОЛ 01</span>
+                            <h2 class="h5 fw-semibold mb-0">Квест 1: Аттестация семьи</h2>
+                        </div>
+                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle font-mono" id="questStatusBadge">АКТИВЕН</span>
+                    </div>
+                    
+                    <p class="text-secondary small mb-4" id="questDescText">
+                        Комплексное тестирование из 10 контрольных заданий: история и структура семьи, логические задачи, взлом сейфа и коммутация цепи зажигания. Время прохождения фиксируется в общем реестре.
                     </p>
-                    <div id="questStatusNotice" style="display: none; margin-bottom: 12px; padding: 10px 14px; border-radius: 6px; font-weight: 600;"></div>
-                    <button type="button" id="openQuestBtn" class="event-open-btn">
-                        🎮 Начать «Квест 1»
-                    </button>
+
+                    <div id="questStatusNotice" class="p-3 rounded mb-3 small font-mono" style="display: none;"></div>
+
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 pt-3 border-top border-secondary-subtle">
+                        <div class="font-mono small text-secondary">ЛИМИТ ПОДСКАЗОК: 3</div>
+                        <button type="button" id="openQuestBtn" class="btn-shiny btn-shiny-primary">
+                            <i class="bi bi-play-fill"></i> Начать «Квест 1»
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- Контейнер с заданиями квеста -->
+            <!-- Контейнер активного прохождения квеста -->
             <div id="quest-container" style="display: none;">
-                <div class="quest-top-bar">
-                    <button type="button" id="closeQuestBtn" class="btn-back">← Назад к списку ивентов</button>
-                    <div class="quest-top-right">
-                        <button type="button" id="adminSkipStepBtn" class="btn-admin-skip" style="display: none;" title="Пропустить текущее задание (Админ)">
-                            ⚡ Пропустить шаг (Админ)
+                <!-- Панель управления шагом -->
+                <div class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom border-secondary-subtle flex-wrap gap-2">
+                    <button type="button" id="closeQuestBtn" class="btn-shiny btn-sm">
+                        <i class="bi bi-arrow-left"></i> Прервать прохождение
+                    </button>
+                    
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <button type="button" id="adminSkipStepBtn" class="btn btn-sm btn-outline-warning font-mono" style="display: none;">
+                            <i class="bi bi-fast-forward"></i> Пропустить шаг [Админ]
                         </button>
-                        <span id="hintsRemainingBadge" class="hints-badge">💡 Подсказок: 3/3</span>
-                        <span class="category-badge" id="questTopStatusBadge">«Квест 1» активен</span>
+                        <span id="hintsRemainingBadge" class="badge bg-body-tertiary border border-secondary-subtle text-secondary font-mono">Подсказок: 3/3</span>
+                        <span id="questTopStatusBadge" class="badge bg-secondary-subtle text-secondary-emphasis font-mono">«Квест 1» активен</span>
                     </div>
                 </div>
 
-                <div class="progress-box">
-                    <div class="progress-header">
+                <!-- Прогресс-бар -->
+                <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle mb-4">
+                    <div class="d-flex justify-content-between font-mono small text-secondary mb-2">
                         <span id="questProgressLabel">Задание 1 из 10</span>
-                        <span>Квест 1</span>
+                        <span>ПРОТОКОЛ АКТИВЕН</span>
                     </div>
-                    <div class="progress-bar-bg">
+                    <div class="progress-track">
                         <div id="questProgressBar" class="progress-bar-fill"></div>
                     </div>
                 </div>
 
+                <!-- Контент заданий -->
                 <div id="quest-content">
                     <!-- Задание 1 -->
                     <div class="quest-step active" id="step1">
-                        <div class="quest-box">
-                            <h4>Задание 1</h4>
-                            <p class="quest-question">Какое подпольное погоняло у Гоши?</p>
-                            <div class="quest-input-group">
-                                <input type="text" id="answer-1" placeholder="Введите ответ">
-                                <button type="button" id="checkBtn1" class="btn-check">Проверить</button>
+                        <div class="spotlight-card">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono mb-2">УЗЕЛ 01 / 10</span>
+                            <h3 class="h5 fw-semibold mb-2">Идентификация</h3>
+                            <p class="text-secondary mb-4">Какое подпольное погоняло у Гоши?</p>
+                            
+                            <div class="d-flex gap-2 flex-wrap mb-3">
+                                <input type="text" id="answer-1" class="form-control" placeholder="Введите ответ" style="max-width: 380px;">
+                                <button type="button" id="checkBtn1" class="btn-shiny btn-shiny-primary">Подтвердить</button>
                             </div>
-                            <div class="hint-container">
-                                <button type="button" class="btn-hint" id="hintBtn1">💡 Взять подсказку</button>
-                                <div class="hint-text" id="hintText1" style="display: none;"></div>
+                            
+                            <div class="pt-3 border-top border-secondary-subtle">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="hintBtn1">Взять подсказку</button>
+                                <div class="p-2 rounded bg-body-tertiary border border-secondary-subtle font-mono small text-secondary mt-2" id="hintText1" style="display: none;"></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Задание 2: Мини-игра "Взлом сейфа семьи" -->
+                    <!-- Задание 2: Мини-игра "Сейф" -->
                     <div class="quest-step" id="step2">
-                        <div class="quest-box">
-                            <h4>Задание 2: Мини-игра</h4>
-                            <p class="quest-question">найдите все парные карточки, чтобы разблокировать замок</p>
+                        <div class="spotlight-card">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono mb-2">УЗЕЛ 02 / 10 · АППАРАТНЫЙ МОДУЛЬ</span>
+                            <h3 class="h5 fw-semibold mb-2">Синхронизация ячеек памяти</h3>
+                            <p class="text-secondary small mb-3">Открывайте карточки и находите парные системные модули (SYS, NET, KEY и др.) для деактивации замка.</p>
 
-                            <div class="minigame-status-bar" style="justify-content: center;">
-                                <span id="minigamePairsCount" style="font-weight: 700; color: #856404;">Найдено пар: 0 из 10</span>
+                            <div class="d-flex justify-content-between align-items-center p-2 rounded bg-body-tertiary border border-secondary-subtle mb-3 font-mono small">
+                                <span id="minigamePairsCount" class="text-secondary">Синхронизировано: 0 из 10 пар</span>
+                                <span class="text-muted">MEMORY MATRIX 5x4</span>
                             </div>
 
-                            <div id="memoryGameGrid" class="memory-grid">
-                                <!-- 8 карточек формируются динамически -->
-                            </div>
+                            <div id="memoryGameGrid" class="memory-grid"></div>
 
-                            <div id="minigameSuccessBox" class="minigame-success-box" style="display: none;">
-                                <div style="background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; border-radius: 6px; padding: 10px; margin-bottom: 0.75rem; font-weight: bold; font-size: 1.05rem;">
-                                    🔓 Замок сейфа успешно взломан! Все 10 пар найдены!
+                            <div id="minigameSuccessBox" class="mt-4" style="display: none;">
+                                <div class="p-3 rounded bg-success-subtle border border-success-subtle text-success-emphasis font-mono small text-center mb-3">
+                                    Все 10 пар синхронизированы. Замок разблокирован.
                                 </div>
-                                <button type="button" id="checkBtn2" class="btn-check" style="width: 100%; padding: 12px; font-size: 1.1rem;">
-                                    Продолжить квест → Перейти к заданию 3
+                                <button type="button" id="checkBtn2" class="btn-shiny btn-shiny-primary w-100 py-2">
+                                    Перейти к следующему узлу
                                 </button>
                             </div>
-
-                            
                         </div>
                     </div>
 
                     <!-- Задание 3 -->
                     <div class="quest-step" id="step3">
-                        <div class="quest-box">
-                            <h4>Задание 3</h4>
-                            <p class="quest-question">Какие бизнесы есть у семьи? (Выберите все правильные варианты)</p>
-                            <div id="business-options" class="options-grid">
+                        <div class="spotlight-card">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono mb-2">УЗЕЛ 03 / 10</span>
+                            <h3 class="h5 fw-semibold mb-2">Реестр активов</h3>
+                            <p class="text-secondary mb-3">Какие бизнесы принадлежат семье Милоновых? (Выберите все правильные варианты)</p>
+                            
+                            <div id="business-options" class="options-grid mb-3">
                                 <button type="button" class="option-btn" data-val="Заправка">Заправка</button>
                                 <button type="button" class="option-btn" data-val="Амунка">Амунка</button>
                                 <button type="button" class="option-btn" data-val="Пятерик">Пятерик</button>
                                 <button type="button" class="option-btn" data-val="ББ">ББ</button>
                                 <button type="button" class="option-btn" data-val="Кинотеатр">Кинотеатр</button>
                             </div>
-                            <div class="quest-input-group">
-                                <button type="button" id="checkBtn3" class="btn-check">Проверить выбор</button>
-                            </div>
-                            <div class="hint-container">
-                                <button type="button" class="btn-hint" id="hintBtn3">💡 Взять подсказку</button>
-                                <div class="hint-text" id="hintText3" style="display: none;"></div>
+
+                            <button type="button" id="checkBtn3" class="btn-shiny btn-shiny-primary mb-3">Подтвердить выбор</button>
+
+                            <div class="pt-3 border-top border-secondary-subtle">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="hintBtn3">Взять подсказку</button>
+                                <div class="p-2 rounded bg-body-tertiary border border-secondary-subtle font-mono small text-secondary mt-2" id="hintText3" style="display: none;"></div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Задание 4 -->
                     <div class="quest-step" id="step4">
-                        <div class="quest-box">
-                            <h4>Задание 4</h4>
-                            <p class="quest-question">Кто стоит во главе семьи?</p>
-                            <div class="quest-input-group">
-                                <input type="text" id="answer-4" placeholder="Введите ответ">
-                                <button type="button" id="checkBtn4" class="btn-check">Проверить</button>
+                        <div class="spotlight-card">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono mb-2">УЗЕЛ 04 / 10</span>
+                            <h3 class="h5 fw-semibold mb-2">Субординация</h3>
+                            <p class="text-secondary mb-4">Кто стоит во главе семьи?</p>
+                            
+                            <div class="d-flex gap-2 flex-wrap mb-3">
+                                <input type="text" id="answer-4" class="form-control" placeholder="Введите имя и фамилию" style="max-width: 380px;">
+                                <button type="button" id="checkBtn4" class="btn-shiny btn-shiny-primary">Подтвердить</button>
                             </div>
-                            <div class="hint-container">
-                                <button type="button" class="btn-hint" id="hintBtn4">💡 Взять подсказку</button>
-                                <div class="hint-text" id="hintText4" style="display: none;"></div>
+
+                            <div class="pt-3 border-top border-secondary-subtle">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="hintBtn4">Взять подсказку</button>
+                                <div class="p-2 rounded bg-body-tertiary border border-secondary-subtle font-mono small text-secondary mt-2" id="hintText4" style="display: none;"></div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Задание 5 -->
                     <div class="quest-step" id="step5">
-                        <div class="quest-box">
-                            <h4>Задание 5: Интерактивное</h4>
-                            <p class="quest-question">Свяжитесь с Jirobasik в Telegram или Discord, чтобы он дал вам ответ на этот вопрос.</p>
-                            <div class="interactive-info">
-                                💬 <strong>Discord:</strong> <code>Jirobasik</code> (Геркулес Милонов ID: 264-013)
+                        <div class="spotlight-card">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono mb-2">УЗЕЛ 05 / 10 · ВНЕШНИЙ ЗАПРОС</span>
+                            <h3 class="h5 fw-semibold mb-2">Авторизация по паролю</h3>
+                            <p class="text-secondary mb-3">Свяжитесь с куратором Jirobasik в Discord для получения разового проверочного кода.</p>
+                            
+                            <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle font-mono small mb-3">
+                                <strong>DISCORD:</strong> <code>Jirobasik</code> (Геркулес Милонов ID: 264-013)
                             </div>
-                            <div class="quest-input-group">
-                                <input type="text" id="answer-5" placeholder="Введите полученный ответ">
-                                <button type="button" id="checkBtn5" class="btn-check">Проверить</button>
+
+                            <div class="d-flex gap-2 flex-wrap mb-3">
+                                <input type="text" id="answer-5" class="form-control" placeholder="Введите полученный код" style="max-width: 380px;">
+                                <button type="button" id="checkBtn5" class="btn-shiny btn-shiny-primary">Подтвердить</button>
                             </div>
-                            <div class="hint-container">
-                                <button type="button" class="btn-hint" id="hintBtn5">💡 Взять подсказку</button>
-                                <div class="hint-text" id="hintText5" style="display: none;"></div>
+
+                            <div class="pt-3 border-top border-secondary-subtle">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="hintBtn5">Взять подсказку</button>
+                                <div class="p-2 rounded bg-body-tertiary border border-secondary-subtle font-mono small text-secondary mt-2" id="hintText5" style="display: none;"></div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Задание 6 -->
                     <div class="quest-step" id="step6">
-                        <div class="quest-box">
-                            <h4>Задание 6</h4>
-                            <p class="quest-question">Подпольная кличка Александра Милонова 859-200?</p>
-                            <div class="quest-input-group">
-                                <input type="text" id="answer-6" placeholder="Введите ответ">
-                                <button type="button" id="checkBtn6" class="btn-check">Проверить</button>
+                        <div class="spotlight-card">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono mb-2">УЗЕЛ 06 / 10</span>
+                            <h3 class="h5 fw-semibold mb-2">Позывные основателей</h3>
+                            <p class="text-secondary mb-4">Подпольная кличка Александра Милонова (ID: 859-200)?</p>
+                            
+                            <div class="d-flex gap-2 flex-wrap mb-3">
+                                <input type="text" id="answer-6" class="form-control" placeholder="Введите ответ" style="max-width: 380px;">
+                                <button type="button" id="checkBtn6" class="btn-shiny btn-shiny-primary">Подтвердить</button>
                             </div>
-                            <div class="hint-container">
-                                <button type="button" class="btn-hint" id="hintBtn6">💡 Взять подсказку</button>
-                                <div class="hint-text" id="hintText6" style="display: none;"></div>
+
+                            <div class="pt-3 border-top border-secondary-subtle">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="hintBtn6">Взять подсказку</button>
+                                <div class="p-2 rounded bg-body-tertiary border border-secondary-subtle font-mono small text-secondary mt-2" id="hintText6" style="display: none;"></div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Задание 7 -->
                     <div class="quest-step" id="step7">
-                        <div class="quest-box">
-                            <h4>Задание 7</h4>
-                            <p class="quest-question">Какой тег в Discord использует семья Милоновых?</p>
-                            <div class="quest-input-group">
-                                <input type="text" id="answer-7" placeholder="Введите ответ">
-                                <button type="button" id="checkBtn7" class="btn-check">Проверить</button>
+                        <div class="spotlight-card">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono mb-2">УЗЕЛ 07 / 10</span>
+                            <h3 class="h5 fw-semibold mb-2">Сетевой тег</h3>
+                            <p class="text-secondary mb-4">Какой официальный тег в Discord использует семья Милоновых?</p>
+                            
+                            <div class="d-flex gap-2 flex-wrap mb-3">
+                                <input type="text" id="answer-7" class="form-control font-mono" placeholder="Введите тег" style="max-width: 380px;">
+                                <button type="button" id="checkBtn7" class="btn-shiny btn-shiny-primary">Подтвердить</button>
                             </div>
-                            <div class="hint-container">
-                                <button type="button" class="btn-hint" id="hintBtn7">💡 Взять подсказку</button>
-                                <div class="hint-text" id="hintText7" style="display: none;"></div>
+
+                            <div class="pt-3 border-top border-secondary-subtle">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="hintBtn7">Взять подсказку</button>
+                                <div class="p-2 rounded bg-body-tertiary border border-secondary-subtle font-mono small text-secondary mt-2" id="hintText7" style="display: none;"></div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Задание 8 -->
                     <div class="quest-step" id="step8">
-                        <div class="quest-box">
-                            <h4>Задание 8</h4>
-                            <p class="quest-question">Из какой фракции семья перешла в ВС РФ?</p>
-                            <div class="quest-input-group">
-                                <input type="text" id="answer-8" placeholder="Введите ответ">
-                                <button type="button" id="checkBtn8" class="btn-check">Проверить</button>
+                        <div class="spotlight-card">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono mb-2">УЗЕЛ 08 / 10</span>
+                            <h3 class="h5 fw-semibold mb-2">История фракций</h3>
+                            <p class="text-secondary mb-4">Из какой структуры семья перешла в ряды ВС РФ?</p>
+                            
+                            <div class="d-flex gap-2 flex-wrap mb-3">
+                                <input type="text" id="answer-8" class="form-control" placeholder="Введите название или аббревиатуру" style="max-width: 380px;">
+                                <button type="button" id="checkBtn8" class="btn-shiny btn-shiny-primary">Подтвердить</button>
                             </div>
-                            <div class="hint-container">
-                                <button type="button" class="btn-hint" id="hintBtn8">💡 Взять подсказку</button>
-                                <div class="hint-text" id="hintText8" style="display: none;"></div>
+
+                            <div class="pt-3 border-top border-secondary-subtle">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="hintBtn8">Взять подсказку</button>
+                                <div class="p-2 rounded bg-body-tertiary border border-secondary-subtle font-mono small text-secondary mt-2" id="hintText8" style="display: none;"></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Задание 9: Мини-игра "Сетка проводки зажигания" -->
+                    <!-- Задание 9: Мини-игра "Проводка" -->
                     <div class="quest-step" id="step9">
-                        <div class="quest-box">
-                            <h4>Задание 9: Мини-игра</h4>
-                            <p class="quest-question">Соедините линиями все 10 пар одинаковых цифр на плате! Нажмите на любую цифру, чтобы начать вести провод к её паре. Провода <strong>не должны пересекаться</strong>. Будьте осторожны: если провода пересекутся или замкнутся на чужую цифру, произойдёт короткое замыкание и <strong>все соединённые провода сбросятся</strong>!</p>
+                        <div class="spotlight-card">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono mb-2">УЗЕЛ 09 / 10 · АППАРАТНАЯ СХЕМА</span>
+                            <h3 class="h5 fw-semibold mb-2">Коммутация цепей зажигания</h3>
+                            <p class="text-secondary small mb-3">Соедините 10 пар идентичных выводов на плате. Линии не должны пересекаться. При замыкании на чужой вывод схема сбрасывается.</p>
 
-                            <div class="minigame-status-bar" style="justify-content: space-between; align-items: center;">
-                                <span id="gridWiresCount" style="font-weight: 700; color: #856404;">Подключено проводов: 0 из 10</span>
-                                <span id="gridCurrentWireInfo" style="font-weight: 700; color: #e74c3c;">Текущий: 🔴 Провод 1 (Питание)</span>
-                                <button type="button" id="gridResetCurrentWireBtn" class="btn-minigame-reset" title="Сбросить текущий провод к старту">↩ Сбросить провод</button>
+                            <div class="d-flex justify-content-between align-items-center p-2 rounded bg-body-tertiary border border-secondary-subtle mb-3 font-mono small flex-wrap gap-2">
+                                <span id="gridWiresCount" class="text-secondary">Подключено линий: 0 из 10</span>
+                                <span id="gridCurrentWireInfo" class="fw-semibold">Линия 1 (Питание)</span>
+                                <button type="button" id="gridResetCurrentWireBtn" class="btn btn-sm btn-outline-secondary">Сброс текущей линии</button>
                             </div>
 
                             <div id="gridCircuitAlert" class="grid-circuit-alert" style="display: none;"></div>
 
-                            <div class="circuit-grid-wrapper">
-                                <div id="circuitGridBoard" class="circuit-grid-board">
-                                    <!-- Сетка 12x12 генерируется динамически -->
-                                </div>
+                            <div class="overflow-auto py-2">
+                                <div id="circuitGridBoard" class="circuit-grid-board"></div>
                             </div>
 
-                            <div id="gridWiresSuccessBox" class="minigame-success-box" style="display: none; margin-top: 1.25rem;">
-                                <div style="background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; border-radius: 6px; padding: 12px; margin-bottom: 0.75rem; font-weight: bold; font-size: 1.05rem; text-align: center;">
-                                    ⚡ Все 10 проводов успешно проведены через плату! Двигатель взревел — кортеж Милоновых готов мчать на Патрики!
+                            <div id="gridWiresSuccessBox" class="mt-4" style="display: none;">
+                                <div class="p-3 rounded bg-success-subtle border border-success-subtle text-success-emphasis font-mono small text-center mb-3">
+                                    Все 10 линий успешно скоммутированы. Цепь замкнута.
                                 </div>
-                                <button type="button" id="checkBtn9" class="btn-check" style="width: 100%; padding: 12px; font-size: 1.1rem;">
-                                    Продолжить квест → Перейти к заданию 10
+                                <button type="button" id="checkBtn9" class="btn-shiny btn-shiny-primary w-100 py-2">
+                                    Перейти к финальному узлу
                                 </button>
                             </div>
                         </div>
@@ -832,43 +344,56 @@
 
                     <!-- Задание 10 -->
                     <div class="quest-step" id="step10">
-                        <div class="quest-box">
-                            <h4>Задание 10</h4>
-                            <p class="quest-question">У кого в Discord на аватарке стоит белый котенок (Только имя)?</p>
-                            <div class="quest-input-group">
-                                <input type="text" id="answer-10" placeholder="Введите имя">
-                                <button type="button" id="checkBtn10" class="btn-check">Проверить</button>
+                        <div class="spotlight-card">
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis font-mono mb-2">УЗЕЛ 10 / 10 · ФИНАЛЬНЫЙ УЗЕЛ</span>
+                            <h3 class="h5 fw-semibold mb-2">Идентификация состава</h3>
+                            <p class="text-secondary mb-4">У кого в Discord на аватаре установлен белый котенок (только имя)?</p>
+                            
+                            <div class="d-flex gap-2 flex-wrap mb-3">
+                                <input type="text" id="answer-10" class="form-control" placeholder="Введите имя" style="max-width: 380px;">
+                                <button type="button" id="checkBtn10" class="btn-shiny btn-shiny-primary">Завершить тестирование</button>
                             </div>
-                            <div class="hint-container">
-                                <button type="button" class="btn-hint" id="hintBtn10">💡 Взять подсказку</button>
-                                <div class="hint-text" id="hintText10" style="display: none;"></div>
+
+                            <div class="pt-3 border-top border-secondary-subtle">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="hintBtn10">Взять подсказку</button>
+                                <div class="p-2 rounded bg-body-tertiary border border-secondary-subtle font-mono small text-secondary mt-2" id="hintText10" style="display: none;"></div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Финал квеста -->
-                    <div id="quest-completed" class="quest-completed-card">
-                        <h3>🎉 Поздравляем!</h3>
-                        <p>Вы успешно завершили все 10 заданий «Квеста 1»!</p>
-                        <div class="time-badge">Время: <span id="finalTimeDisplay">0:00</span></div>
-                        <p>Ваш лучший результат зафиксирован в таблице рейтинга семьи.</p>
-                        <div class="completed-actions">
-                            <a href="rating.html" class="btn">Посмотреть рейтинг</a>
-                            <button type="button" id="restartQuestBtn" class="btn-back">Пройти заново</button>
+                    <div id="quest-completed" class="spotlight-card text-center py-5" style="display: none;">
+                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle font-mono px-3 py-1 mb-3">ПРОТОКОЛ ВЫПОЛНЕН</span>
+                        <h2 class="h3 fw-bold mb-2">Тестирование успешно завершено</h2>
+                        <p class="text-secondary small mb-4">Все 10 контрольных узлов пройдены. Результат зафиксирован в общем облачном реестре.</p>
+                        
+                        <div class="d-inline-block p-3 rounded bg-body-tertiary border border-secondary-subtle mb-4">
+                            <div class="font-mono small text-secondary">ИТОГОВОЕ ВРЕМЯ</div>
+                            <div id="finalTimeDisplay" class="h2 fw-bold font-mono text-white mb-0">0:00</div>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-center flex-wrap">
+                            <a href="rating.html" class="btn-shiny btn-shiny-primary px-4 py-2">
+                                <i class="bi bi-bar-chart"></i> Перейти в рейтинг
+                            </a>
+                            <button type="button" id="restartQuestBtn" class="btn-shiny px-4 py-2">
+                                <i class="bi bi-arrow-clockwise"></i> Пройти повторно
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
     </main>
 
-    <footer>
-        <p>&copy; 2026 Милоновы</p>
+    <footer class="site-footer">
+        <div class="container d-flex flex-column flex-sm-row align-items-center justify-content-between gap-2 text-center text-sm-start font-mono small">
+            <div>&copy; 2026 MILONOV EVENT PLATFORM. Все права защищены.</div>
+            <div class="text-secondary">КОНТРОЛЬ ПРОТОКОЛОВ</div>
+        </div>
     </footer>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
     <script src="../js/firebase-db.js"></script>
