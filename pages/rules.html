@@ -18,31 +18,34 @@
     <link rel="stylesheet" href="../css/styles.css">
     <style>
         .charter { padding: 0; }
-        .charter h1 { text-align: center; font-size: 2rem; font-weight: 900; letter-spacing: 0.1em; margin-bottom: 2rem; }
-        .charter article { text-align: left; background: rgba(255,255,255,0.92); border-radius: 10px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
-        .charter article h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; border-left: 4px solid #ffd700; padding-left: 0.75rem; }
-        .charter article p { margin-bottom: 0.6rem; color: #333; }
-        .charter article blockquote { margin: 0.8rem 0 0; padding: 0.5rem 1rem; border-left: 3px solid #ccc; color: #555; font-style: italic; }
-        .charter .conclusion { background: rgba(0,0,0,0.75); color: #fff; border-radius: 10px; padding: 1.5rem 2rem; margin-top: 2rem; }
-        .charter .conclusion h2 { color: #ffd700; border-left-color: #ffd700; }
-        .charter .conclusion p { color: #ddd; }
+        .charter h1 { text-align: center; font-size: 2rem; font-weight: 900; letter-spacing: 0.05em; margin-bottom: 2rem; color: #fff; }
+        .charter article { text-align: left; background: rgba(13, 17, 23, 0.65); border: 1px solid rgba(255, 255, 255, 0.1); border-left: 4px solid var(--bs-purple); border-radius: 10px; padding: 1.5rem 2rem; margin-bottom: 1.5rem; box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
+        .charter article h2 { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem; border-left: 4px solid var(--bs-purple); padding-left: 0.75rem; color: #f0f6fc; }
+        .charter article p { margin-bottom: 0.6rem; color: #c9d1d9; }
+        .charter article blockquote { margin: 0.8rem 0 0; padding: 0.5rem 1rem; border-left: 3px solid rgba(113, 44, 249, 0.5); color: #8b949e; font-style: italic; background: rgba(113, 44, 249, 0.05); border-radius: 0 6px 6px 0; }
+        .charter .conclusion { background: rgba(113, 44, 249, 0.12); border: 1px solid rgba(113, 44, 249, 0.35); color: #fff; border-radius: 10px; padding: 1.5rem 2rem; margin-top: 2rem; }
+        .charter .conclusion h2 { color: #c084fc; border-left-color: var(--bs-purple); }
+        .charter .conclusion p { color: #e6edf3; }
     </style>
 </head>
 <body>
-        <header>
+    <header>
         <div class="header-user-bar">
             <a href="profile.html" class="header-user-badge" title="Личный кабинет">
                 <span>Профиль</span>
-                <img class="header-avatar-img userHeaderAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23ffd700'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23222'/%3E%3Cpath d='M20 85 C20 62 34 58 50 58 C66 58 80 62 80 85 Z' fill='%23222'/%3E%3C/svg%3E" alt="Аватар">
+                <img class="header-avatar-img userHeaderAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23712cf9'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23fff'/%3E%3Cpath d='M20 85 C20 62 34 58 50 58 C66 58 80 62 80 85 Z' fill='%23fff'/%3E%3C/svg%3E" alt="Аватар">
             </a>
         </div>
-        <h1>Милоновы</h1>
+        <div class="brand-wrapper">
+            <span class="bs-logo-badge">M</span>
+            <h1>Милоновы</h1>
+        </div>
         <nav>
             <ul>
                 <li><a href="../index.html">Главная</a></li>
                 <li><a href="about.html">О нас</a></li>
                 <li><a href="contact.html">Контакты</a></li>
-                <li><a href="rules.html">Устав семьи</a></li>
+                <li><a href="rules.html" class="active">Устав семьи</a></li>
                 <li><a href="quest.html">Ивенты</a></li>
                 <li><a href="rating.html">Рейтинг</a></li>
             </ul>

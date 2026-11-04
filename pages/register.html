@@ -18,98 +18,111 @@
     <link rel="stylesheet" href="../css/styles.css">
     <style>
         .auth-card {
-            max-width: 480px;
+            max-width: 460px;
             margin: 0 auto;
             text-align: left;
         }
         .auth-tabs {
             display: flex;
-            border-bottom: 2px solid #e9ecef;
+            gap: 6px;
+            background: rgba(13, 17, 23, 0.7);
+            padding: 5px;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             margin-bottom: 1.5rem;
         }
         .auth-tab-btn {
             flex: 1;
-            padding: 12px 16px;
+            padding: 10px 16px;
             background: transparent;
             border: none;
-            border-bottom: 3px solid transparent;
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #6c757d;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #8b949e;
             cursor: pointer;
             transition: all 0.2s ease;
             text-align: center;
         }
         .auth-tab-btn:hover {
-            color: #222;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.05);
         }
         .auth-tab-btn.active {
-            color: #222;
-            border-bottom-color: #ffd700;
+            color: #fff;
+            background: #712cf9;
+            box-shadow: 0 4px 12px rgba(113, 44, 249, 0.4);
         }
         .auth-field {
-            margin-bottom: 1.1rem;
+            margin-bottom: 1.15rem;
         }
         .auth-field label {
             display: block;
-            font-weight: 700;
+            font-weight: 600;
             font-size: 0.9rem;
-            margin-bottom: 0.35rem;
-            color: #333;
+            margin-bottom: 0.4rem;
+            color: #c9d1d9;
         }
         .auth-field input {
             width: 100%;
-            padding: 10px 14px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
+            padding: 11px 14px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 0.5rem;
             font-size: 1rem;
             box-sizing: border-box;
-            background: #fff;
-            transition: border-color 0.2s;
+            background: #0d1117;
+            color: #f0f6fc;
+            transition: all 0.2s;
         }
         .auth-field input:focus {
-            border-color: #ffd700;
+            border-color: #712cf9;
             outline: none;
-            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.25);
+            box-shadow: 0 0 0 0.25rem rgba(113, 44, 249, 0.25);
         }
         .btn-auth-submit {
             width: 100%;
             padding: 12px;
-            background: #ffd700;
-            color: #222;
-            border: 2px solid #e0be00;
-            border-radius: 6px;
+            background: #712cf9;
+            color: #fff;
+            border: 1px solid #712cf9;
+            border-radius: 0.5rem;
             font-size: 1.05rem;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
-            margin-top: 0.5rem;
+            margin-top: 0.75rem;
             transition: all 0.2s ease;
+            box-shadow: 0 4px 14px rgba(113, 44, 249, 0.35);
         }
         .btn-auth-submit:hover {
-            background: #222;
-            color: #ffd700;
-            border-color: #222;
+            background: #5f23d9;
+            border-color: #5f23d9;
+            color: #fff;
+            box-shadow: 0 6px 20px rgba(113, 44, 249, 0.5);
+            transform: translateY(-1px);
         }
         .auth-switch-text {
             text-align: center;
-            margin-top: 1.25rem;
+            margin-top: 1.5rem;
             font-size: 0.95rem;
-            color: #555;
+            color: #8b949e;
         }
         .auth-switch-link {
-            color: #222;
-            font-weight: 700;
+            color: #a370f7;
+            font-weight: 600;
             cursor: pointer;
             text-decoration: underline;
         }
         .auth-switch-link:hover {
-            color: #b8860b;
+            color: #c084fc;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Милоновы</h1>
+        <div class="brand-wrapper">
+            <span class="bs-logo-badge">M</span>
+            <h1>Милоновы</h1>
+        </div>
     </header>
 
     <main>

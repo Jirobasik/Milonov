@@ -24,12 +24,15 @@
             margin-top: 1.5rem;
         }
         .contact-card {
-            background: rgba(0, 0, 0, 0.04);
-            border-left: 4px solid #ffd700;
+            background: rgba(13, 17, 23, 0.65);
+            border-left: 4px solid var(--bs-purple);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-left-width: 4px;
+            border-left-color: #712cf9;
             border-radius: 8px;
-            padding: 1rem 1.5rem;
+            padding: 1.25rem 1.5rem;
             text-align: left;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
         }
         .contact-header {
             display: flex;
@@ -43,37 +46,41 @@
             margin: 0;
             font-size: 1.25rem;
             font-weight: 700;
-            color: #222;
+            color: #f0f6fc;
         }
         .contact-id {
-            background: #ffd700;
-            color: #222;
+            background: rgba(113, 44, 249, 0.2);
+            color: #c084fc;
+            border: 1px solid rgba(113, 44, 249, 0.4);
             font-weight: 700;
             padding: 0.2rem 0.6rem;
-            border-radius: 4px;
-            font-size: 0.95rem;
+            border-radius: 50rem;
+            font-size: 0.85rem;
         }
         .contact-card p {
             margin: 0.3rem 0;
             font-size: 1.05rem;
-            color: #333;
+            color: #c9d1d9;
         }
     </style>
 </head>
 <body>
-        <header>
+    <header>
         <div class="header-user-bar">
             <a href="profile.html" class="header-user-badge" title="Личный кабинет">
                 <span>Профиль</span>
-                <img class="header-avatar-img userHeaderAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23ffd700'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23222'/%3E%3Cpath d='M20 85 C20 62 34 58 50 58 C66 58 80 62 80 85 Z' fill='%23222'/%3E%3C/svg%3E" alt="Аватар">
+                <img class="header-avatar-img userHeaderAvatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%23712cf9'/%3E%3Ccircle cx='50' cy='38' r='18' fill='%23fff'/%3E%3Cpath d='M20 85 C20 62 34 58 50 58 C66 58 80 62 80 85 Z' fill='%23fff'/%3E%3C/svg%3E" alt="Аватар">
             </a>
         </div>
-        <h1>Милоновы</h1>
+        <div class="brand-wrapper">
+            <span class="bs-logo-badge">M</span>
+            <h1>Милоновы</h1>
+        </div>
         <nav>
             <ul>
                 <li><a href="../index.html">Главная</a></li>
                 <li><a href="about.html">О нас</a></li>
-                <li><a href="contact.html">Контакты</a></li>
+                <li><a href="contact.html" class="active">Контакты</a></li>
                 <li><a href="rules.html">Устав семьи</a></li>
                 <li><a href="quest.html">Ивенты</a></li>
                 <li><a href="rating.html">Рейтинг</a></li>

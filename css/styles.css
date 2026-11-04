@@ -1,35 +1,115 @@
+/* ============================================================================
+   ИВЕНТЫ МИЛОНОВЫХ — ДИЗАЙН-СИСТЕМА В СТИЛЕ GETBOOTSTRAP.COM
+   Modern Dark Theme with Signature Bootstrap Purple (#712cf9) & Glassmorphism
+============================================================================ */
+
+:root {
+    --bs-purple: #712cf9;
+    --bs-purple-rgb: 113, 44, 249;
+    --bs-purple-hover: #5f23d9;
+    --bs-purple-active: #511ec7;
+    --bs-purple-glow: rgba(113, 44, 249, 0.35);
+    
+    --bs-dark-bg: #0d1117;
+    --bs-card-bg: #161b22;
+    --bs-card-border: rgba(255, 255, 255, 0.12);
+    --bs-input-bg: #0b0e14;
+    --bs-header-bg: rgba(13, 17, 23, 0.85);
+    
+    --bs-text: #e6edf3;
+    --bs-text-muted: #8b949e;
+    --bs-heading: #f0f6fc;
+    
+    --bs-success: #2ea043;
+    --bs-warning: #f1e05a;
+    --bs-danger: #f85149;
+    --bs-info: #58a6ff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-image: url('../images/milonovy.jpg');
-    background-size: cover;
-    background-position: center center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    color: #333;
     min-height: 100vh;
-    line-height: 1.6;
-    /* flexbox-футер: прижимает footer вниз без position:fixed */
     display: flex;
     flex-direction: column;
+    color: var(--bs-text);
+    background-color: var(--bs-dark-bg);
+    background-image: 
+        radial-gradient(120% 80% at 50% 0%, rgba(113, 44, 249, 0.22) 0%, rgba(13, 17, 23, 0) 60%),
+        linear-gradient(180deg, rgba(13, 17, 23, 0.88) 0%, rgba(22, 27, 34, 0.95) 100%),
+        url('../images/milonovy.jpg');
+    background-size: 100% auto, 100% 100%, cover;
+    background-position: center top, center, center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
 }
+
+/* ─── Шапка и Навигация в стиле Bootstrap Docs ──────────────────────────────── */
 
 header {
-    background-color: rgba(0, 0, 0, 0.7);
-    color: #fff;
-    padding: 1.5rem;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 10px;
+    background: var(--bs-header-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--bs-card-border);
+    padding: 1rem 1.5rem 1.25rem 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     margin-bottom: 2rem;
-    position: relative; /* для позиционирования профиля в правом верхнем углу */
 }
 
-/* Виджет профиля в правом верхнем углу шапки */
+/* Логотип Bootstrap-стиля (Фиолетовая иконка с "M" + Заголовок) */
+.brand-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.bs-logo-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, #712cf9 0%, #a370f7 50%, #d63384 100%);
+    border-radius: 10px;
+    color: #fff;
+    font-weight: 900;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 16px rgba(113, 44, 249, 0.45);
+    user-select: none;
+    letter-spacing: -1px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.5px;
+    display: inline-flex;
+    align-items: center;
+}
+
+header h1 a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Виджет профиля (аккаунт в углу шапки) */
 .header-user-bar {
     position: absolute;
-    top: 1.25rem;
+    top: 1.15rem;
     right: 1.5rem;
     z-index: 100;
 }
@@ -38,237 +118,559 @@ header {
     display: inline-flex;
     align-items: center;
     gap: 0.65rem;
-    background: rgba(255, 255, 255, 0.12);
-    border: 1.5px solid #ffd700;
-    padding: 4px 6px 4px 14px;
-    border-radius: 30px;
-    color: #fff;
+    background: rgba(113, 44, 249, 0.12);
+    border: 1px solid rgba(113, 44, 249, 0.35);
+    padding: 4px 8px 4px 14px;
+    border-radius: 50rem;
+    color: #f0f6fc;
     text-decoration: none;
-    font-weight: 700;
-    font-size: 0.95rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    font-weight: 600;
+    font-size: 0.9rem;
     transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .header-user-badge:hover {
-    background: rgba(255, 215, 0, 0.25);
-    color: #ffd700;
+    background: rgba(113, 44, 249, 0.28);
+    border-color: #712cf9;
+    color: #fff;
     text-decoration: none;
+    box-shadow: 0 0 15px rgba(113, 44, 249, 0.4);
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
 }
 
 .header-avatar-img {
-    width: 38px;
-    height: 38px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #ffd700;
-    background: #fff;
+    border: 1.5px solid #a370f7;
+    background: #161b22;
     display: block;
 }
 
-@media (max-width: 650px) {
+@media (max-width: 768px) {
+    header {
+        position: relative;
+    }
     .header-user-bar {
         position: static;
         display: flex;
         justify-content: center;
-        margin-bottom: 1rem;
+        margin-bottom: 0.75rem;
     }
 }
 
+/* Меню навигации */
 nav ul {
     list-style: none;
     padding: 0;
+    margin: 0;
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
-}
-
-nav ul li {
-    margin: 0 15px;
+    gap: 0.4rem;
 }
 
 nav ul li a {
-    color: #fff;
+    color: #c9d1d9;
     text-decoration: none;
-    font-weight: 600;
-    transition: color 0.3s;
-    padding: 0.5rem 1rem;
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+    display: inline-block;
 }
 
 nav ul li a:hover {
-    color: #ffd700;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    text-decoration: none;
 }
+
+nav ul li a.active,
+nav ul li a[aria-current="page"] {
+    color: #fff;
+    background: rgba(113, 44, 249, 0.2);
+    border: 1px solid rgba(113, 44, 249, 0.4);
+}
+
+/* ─── Основной контейнер страниц (Bootstrap Card Look) ──────────────────────── */
 
 main {
-    padding: 2rem;
-    text-align: center;
-    background-color: rgba(255, 255, 255, 0.9);
-    margin: 2rem auto;
-    max-width: 800px;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    padding: 2.25rem;
+    background: rgba(22, 27, 34, 0.94);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    margin: 1.5rem auto 3rem auto;
+    max-width: 860px;
+    width: 92%;
+    border-radius: 1rem;
+    border: 1px solid var(--bs-card-border);
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(113, 44, 249, 0.12);
     box-sizing: border-box;
+    color: var(--bs-text);
 }
 
-.btn {
-    display: inline-block;
-    padding: 12px 25px;
-    background-color: #ffd700;
-    color: #333;
+h1, h2, h3, h4, h5, h6 {
+    color: var(--bs-heading);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+main h2 {
+    font-size: 1.75rem;
+    margin-bottom: 1.25rem;
+    font-weight: 800;
+}
+
+p {
+    color: var(--bs-text);
+    font-size: 1.05rem;
+}
+
+/* ─── Кнопки в стиле getbootstrap.com ───────────────────────────────────────── */
+
+.btn,
+button.btn,
+a.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.4rem;
+    background-color: var(--bs-purple);
+    color: #fff !important;
     text-decoration: none;
-    border-radius: 5px;
-    font-weight: bold;
-    transition: all 0.3s;
-    border: 2px solid #333;
-}
-
-.btn:hover {
-    background-color: #333;
-    color: #fff;
-}
-
-footer {
-    background-color: rgba(0, 0, 0, 0.7);
-    color: #fff;
-    text-align: center;
-    padding: 1rem;
-    width: 100%;
-    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
-    margin-top: auto; /* прижимает footer вниз без растяжки main */
-}
-
-/* Стили для таблицы рейтинга */
-.rating-table {
-    background-color: rgba(255, 255, 255, 0.9);
-    padding: 20px;
-    border-radius: 10px;
-    margin: 2rem auto;
-    max-width: 800px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-}
-
-.rating-table table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.rating-table th, .rating-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-.rating-table th {
-    background-color: #ffd700;
-    color: #333;
-}
-
-.rating-table tr:hover {
-    background-color: #f5f5f5;
-}
-
-/* Модальное окно регистрации и входа */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-}
-
-.modal-content {
-    background-color: #fefefe;
-    margin: 10% auto;
-    padding: 20px;
-    border-radius: 10px;
-    width: 80%;
-    max-width: 500px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-    position: relative;
-}
-
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-.close:hover {
-    color: #333;
-}
-
-.modal-form {
-    display: flex;
-    flex-direction: column;
-}
-
-.modal-form input {
-    padding: 12px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+    border-radius: 0.5rem;
+    font-weight: 600;
     font-size: 1rem;
-}
-
-.modal-form button {
-    padding: 10px;
-    background-color: #ffd700;
-    color: #333;
-    border: none;
-    border-radius: 5px;
+    border: 1px solid var(--bs-purple);
     cursor: pointer;
-    font-weight: bold;
-    margin-top: 10px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 14px var(--bs-purple-glow);
 }
 
-.modal-form button:hover {
-    background-color: #333;
-    color: #fff;
+.btn:hover,
+button.btn:hover,
+a.btn:hover {
+    background-color: var(--bs-purple-hover);
+    border-color: var(--bs-purple-hover);
+    color: #fff !important;
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(113, 44, 249, 0.5);
 }
 
-.quest-step {
-    display: none;
+.btn:active {
+    background-color: var(--bs-purple-active);
+    transform: translateY(0);
 }
 
-.quest-step.active {
+.btn-secondary,
+.btn-outline-light {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    color: #f0f6fc !important;
+    box-shadow: none !important;
+}
+
+.btn-secondary:hover,
+.btn-outline-light:hover {
+    background-color: rgba(255, 255, 255, 0.16) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: #fff !important;
+}
+
+/* ─── Формы и поля ввода ────────────────────────────────────────────────────── */
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+select,
+textarea {
+    width: 100%;
+    padding: 0.65rem 0.95rem;
+    background: var(--bs-input-bg) !important;
+    border: 1px solid rgba(255, 255, 255, 0.18) !important;
+    border-radius: 0.5rem !important;
+    color: #f0f6fc !important;
+    font-size: 1rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: var(--bs-purple) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 0.25rem rgba(113, 44, 249, 0.25) !important;
+}
+
+label {
+    color: #c9d1d9;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 0.35rem;
     display: block;
 }
-/* 📢 Глобальный баннер-объявление семьи */
+
+/* ─── Таблицы (Рейтинг, Пользователи) ────────────────────────────────────────── */
+
+.rating-table,
+.table-container {
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-card-border);
+    border-radius: 0.75rem;
+    padding: 0;
+    margin: 1.5rem auto;
+    overflow-x: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    color: var(--bs-text);
+}
+
+table th {
+    background: #21262d !important;
+    color: #c084fc !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    padding: 12px 16px;
+    border-bottom: 2px solid rgba(113, 44, 249, 0.35) !important;
+    border-top: none !important;
+}
+
+table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: #e6edf3;
+    font-size: 0.95rem;
+    vertical-align: middle;
+}
+
+table tbody tr:hover td {
+    background: rgba(113, 44, 249, 0.08) !important;
+}
+
+table tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
+/* ─── Бейджи (Badges в стиле Bootstrap 5) ────────────────────────────────────── */
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.35em 0.8em;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 50rem !important;
+}
+
+.badge-warning {
+    background: rgba(113, 44, 249, 0.2) !important;
+    color: #c084fc !important;
+    border: 1px solid rgba(113, 44, 249, 0.4) !important;
+}
+
+.badge-success {
+    background: rgba(46, 160, 67, 0.2) !important;
+    color: #3fb950 !important;
+    border: 1px solid rgba(46, 160, 67, 0.4) !important;
+}
+
+.badge-danger {
+    background: rgba(248, 81, 73, 0.2) !important;
+    color: #ff7b72 !important;
+    border: 1px solid rgba(248, 81, 73, 0.4) !important;
+}
+
+.badge-secondary {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: #8b949e !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* ─── Глобальный баннер-объявление семьи ─────────────────────────────────────── */
+
 .global-family-banner {
-    background: #1e222b;
+    background: #161b22;
     color: #fff;
-    border-bottom: 2px solid #ffd700;
+    border-bottom: 1px solid rgba(113, 44, 249, 0.4);
     padding: 0.75rem 1rem;
     text-align: center;
     font-size: 0.95rem;
     font-weight: 600;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
     position: relative;
     z-index: 999;
 }
+
 .global-family-banner .banner-badge {
-    background: #ffd700;
-    color: #222;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-weight: 800;
-    font-size: 0.85rem;
+    background: var(--bs-purple);
+    color: #fff;
+    padding: 3px 10px;
+    border-radius: 50rem;
+    font-weight: 700;
+    font-size: 0.8rem;
     margin-right: 8px;
+    box-shadow: 0 2px 8px var(--bs-purple-glow);
 }
+
 .admin-dynamic-note {
-    background: #fffdf0;
-    border-left: 4px solid #ffd700;
-    border-radius: 6px;
+    background: rgba(113, 44, 249, 0.08);
+    border-left: 4px solid var(--bs-purple);
+    border-radius: 0.5rem;
     padding: 1rem 1.25rem;
     margin: 1.5rem 0;
     font-size: 0.95rem;
-    color: #333;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    color: #e6edf3;
+    border: 1px solid rgba(113, 44, 249, 0.2);
+    border-left-width: 4px;
+}
+
+/* ─── Модальное окно ────────────────────────────────────────────────────────── */
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+}
+
+.modal-content {
+    background: var(--bs-card-bg);
+    border: 1px solid var(--bs-card-border);
+    margin: 10% auto;
+    padding: 24px;
+    border-radius: 1rem;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(113, 44, 249, 0.2);
+    position: relative;
+    color: var(--bs-text);
+}
+
+.close {
+    color: #8b949e;
+    float: right;
+    font-size: 26px;
+    font-weight: bold;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.close:hover {
+    color: #fff;
+}
+
+/* ─── Футер ─────────────────────────────────────────────────────────────────── */
+
+footer {
+    background: var(--bs-dark-bg);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--bs-text-muted);
+    text-align: center;
+    padding: 1.75rem 1rem;
+    width: 100%;
+    margin-top: auto;
+    font-size: 0.9rem;
+}
+
+footer p {
+    margin: 0;
+    color: var(--bs-text-muted);
+}
+
+/* ─── Стили для страниц Авторизации, Профиля и Квеста ───────────────────────── */
+
+/* Вкладки в стиле Bootstrap nav-pills */
+.auth-tabs,
+.admin-tabs-nav {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    background: rgba(13, 17, 23, 0.6);
+    padding: 6px;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 1.5rem;
+}
+
+.auth-tab-btn,
+.admin-tab-btn {
+    flex: 1;
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--bs-text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+}
+
+.auth-tab-btn:hover,
+.admin-tab-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.auth-tab-btn.active,
+.admin-tab-btn.active {
+    color: #fff;
+    background: var(--bs-purple);
+    box-shadow: 0 2px 10px var(--bs-purple-glow);
+}
+
+.btn-auth-submit,
+.event-open-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--bs-purple) !important;
+    color: #fff !important;
+    border: 1px solid var(--bs-purple) !important;
+    border-radius: 0.5rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 0.75rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 14px var(--bs-purple-glow);
+}
+
+.btn-auth-submit:hover,
+.event-open-btn:hover {
+    background: var(--bs-purple-hover) !important;
+    border-color: var(--bs-purple-hover) !important;
+    box-shadow: 0 6px 20px rgba(113, 44, 249, 0.5);
+    transform: translateY(-1px);
+}
+
+.auth-switch-text {
+    text-align: center;
+    margin-top: 1.25rem;
+    font-size: 0.95rem;
+    color: var(--bs-text-muted);
+}
+
+.auth-switch-link {
+    color: #a370f7;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.auth-switch-link:hover {
+    color: #c084fc;
+}
+
+/* Кнопки действий таблицы админки */
+.btn-table-grant {
+    background: rgba(113, 44, 249, 0.2) !important;
+    color: #c084fc !important;
+    border: 1px solid rgba(113, 44, 249, 0.4) !important;
+    border-radius: 50rem;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 2px;
+}
+.btn-table-grant:hover {
+    background: var(--bs-purple) !important;
+    color: #fff !important;
+}
+
+.btn-table-ban {
+    background: rgba(248, 81, 73, 0.15) !important;
+    color: #ff7b72 !important;
+    border: 1px solid rgba(248, 81, 73, 0.3) !important;
+    border-radius: 50rem;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 2px;
+}
+.btn-table-ban:hover {
+    background: #dc3545 !important;
+    color: #fff !important;
+}
+
+.btn-table-unban {
+    background: rgba(46, 160, 67, 0.15) !important;
+    color: #3fb950 !important;
+    border: 1px solid rgba(46, 160, 67, 0.3) !important;
+    border-radius: 50rem;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 2px;
+}
+.btn-table-unban:hover {
+    background: #198754 !important;
+    color: #fff !important;
+}
+
+.btn-table-reset-pwd {
+    background: rgba(255, 255, 255, 0.08) !important;
+    color: #c9d1d9 !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    border-radius: 50rem;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 2px;
+}
+.btn-table-reset-pwd:hover {
+    background: rgba(255, 255, 255, 0.16) !important;
+    color: #fff !important;
+}
+
+.btn-table-del {
+    background: rgba(248, 81, 73, 0.1) !important;
+    color: #ff7b72 !important;
+    border: 1px solid rgba(248, 81, 73, 0.25) !important;
+    border-radius: 50rem;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 2px;
+}
+.btn-table-del:hover {
+    background: #dc3545 !important;
+    color: #fff !important;
+}
+
+/* Карточки событий в квесте */
+.event-card {
+    background: rgba(13, 17, 23, 0.6);
+    border: 1px solid var(--bs-card-border);
+    border-radius: 0.85rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
 }
