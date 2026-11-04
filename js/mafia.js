@@ -193,23 +193,12 @@ async function createMafiaRoom() {
     }
 }
 
-// ─── Подключение к комнате ──────────────────────────────────────────────────
+// ─── Подключение к комнате (Открытый вход) ──────────────────────────────────
 
 async function joinMafiaRoom(roomCode) {
     if (!roomCode) {
-        const input = document.getElementById('joinRoomInput');
-        roomCode = input ? input.value.trim().toUpperCase() : '';
-    }
-    if (!roomCode) {
-        alert('Введите код комнаты (например: MAF-123)');
+        alert('Выберите комнату из списка открытых лобби.');
         return;
-    }
-
-    const btn = document.getElementById('joinMafiaRoomBtn');
-    const originalText = btn ? btn.innerHTML : '';
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Подключение...';
     }
 
     try {
@@ -222,34 +211,33 @@ async function joinMafiaRoom(roomCode) {
         const roomRef = db.collection('mafia_rooms').doc(roomCode);
         const snap = await roomRef.get();
         if (!snap.exists) {
-            alert(`Комната ${roomCode} не найдена. Проверьте правильность кода.`);
+            alert(`Комната ${roomCode} не найдена или уже удалена.`);
             return;
         }
 
         const data = snap.data();
         const player = getCurrentPlayerInfo();
-
-        if (data.status !== 'lobby') {
-            if (!data.players || !data.players[player.id]) {
-                alert('Игра в этой комнате уже запущена. Подключение новых игроков заблокировано.');
-                return;
-            }
-        }
-
         const updatePath = `players.${player.id}`;
-        const playerData = data.players && data.players[player.id] ? data.players[player.id] : {
-            id: player.id,
-            name: player.name,
-            avatar: player.avatar,
-            isHost: (data.hostId === player.id),
-            isAlive: true,
-            role: null,
-            voteTarget: null,
-            nightTarget: null,
-            checkedBySheriff: false,
-            healedByDoctor: false,
-            blockedByCourtesan: false
-        };
+
+        let playerData = data.players && data.players[player.id] ? data.players[player.id] : null;
+
+        if (!playerData) {
+            const isMidGame = (data.status !== 'lobby');
+            playerData = {
+                id: player.id,
+                name: player.name,
+                avatar: player.avatar,
+                isHost: (data.hostId === player.id),
+                isAlive: !isMidGame,
+                isObserver: isMidGame,
+                role: isMidGame ? 'civilian' : null,
+                voteTarget: null,
+                nightTarget: null,
+                checkedBySheriff: false,
+                healedByDoctor: false,
+                blockedByCourtesan: false
+            };
+        }
 
         const newLogs = [...(data.logs || [])];
         if (!data.players || !data.players[player.id]) {
@@ -269,11 +257,6 @@ async function joinMafiaRoom(roomCode) {
     } catch (err) {
         console.error('Ошибка подключения к комнате:', err);
         alert('Ошибка подключения: ' + (err.message || err));
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-        }
     }
 }
 
@@ -1291,9 +1274,7 @@ window.submitVote = submitVote;
 document.addEventListener('DOMContentLoaded', async () => {
     // Прямая привязка обработчиков клика к кнопкам через addEventListener
     document.getElementById('createMafiaRoomBtn')?.addEventListener('click', createMafiaRoom);
-    document.getElementById('joinMafiaRoomBtn')?.addEventListener('click', () => joinMafiaRoom());
     document.getElementById('refreshRoomsBtn')?.addEventListener('click', refreshRoomsList);
-    document.getElementById('copyRoomCodeBtn')?.addEventListener('click', copyMafiaRoomCode);
     document.getElementById('leaveMafiaRoomBtn')?.addEventListener('click', leaveMafiaRoom);
     document.getElementById('leaveMafiaRoomBtn2')?.addEventListener('click', leaveMafiaRoom);
     document.getElementById('startGameBtn')?.addEventListener('click', startMafiaGame);
@@ -1303,14 +1284,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('chatTabMafia')?.addEventListener('click', () => setChatChannel('mafia'));
     document.getElementById('sendChatBtn')?.addEventListener('click', sendChatMessage);
     document.getElementById('hostRestartGameBtn')?.addEventListener('click', hostRestartGame);
-
-    // Enter на инпуте кода комнаты
-    document.getElementById('joinRoomInput')?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            joinMafiaRoom();
-        }
-    });
 
     // Слушатель Enter для инпута чата
     document.getElementById('chatInput')?.addEventListener('keydown', (e) => {
