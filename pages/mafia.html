@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
           content="default-src 'self';
-                   script-src 'self' https://cdn.jsdelivr.net https://www.gstatic.com;
+                   script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.gstatic.com;
                    style-src  'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline';
                    font-src   'self' https://cdn.jsdelivr.net https://fonts.gstatic.com data:;
                    connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com;
@@ -157,7 +157,7 @@
                             </div>
                         </div>
 
-                        <button type="button" class="btn-shiny btn-shiny-primary w-100 py-2" onclick="createMafiaRoom()">
+                        <button type="button" id="createMafiaRoomBtn" class="btn-shiny btn-shiny-primary w-100 py-2" onclick="createMafiaRoom()">
                             <i class="bi bi-plus-circle"></i> Сформировать комнату
                         </button>
                     </div>
@@ -178,7 +178,7 @@
                                 <label class="form-label" for="joinRoomInput">Код комнаты</label>
                                 <input type="text" id="joinRoomInput" class="form-control font-mono text-uppercase" placeholder="Например: MAF-782">
                             </div>
-                            <button type="button" class="btn-shiny w-100 py-2 mb-4" onclick="joinMafiaRoom()">
+                            <button type="button" id="joinMafiaRoomBtn" class="btn-shiny w-100 py-2 mb-4" onclick="joinMafiaRoom()">
                                 Войти в лобби
                             </button>
                         </div>
@@ -186,7 +186,7 @@
                         <div>
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="font-mono small text-secondary">ОТКРЫТЫЕ СЕССИИ</span>
-                                <button type="button" class="btn btn-sm btn-link text-secondary text-decoration-none p-0" onclick="refreshRoomsList()">
+                                <button type="button" id="refreshRoomsBtn" class="btn btn-sm btn-link text-secondary text-decoration-none p-0" onclick="refreshRoomsList()">
                                     <i class="bi bi-arrow-repeat"></i> Обновить
                                 </button>
                             </div>
@@ -203,12 +203,12 @@
             <div class="spotlight-card p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
                 <div class="d-flex align-items-center gap-3">
                     <span class="badge bg-secondary font-mono fs-6" id="currentRoomCodeDisplay">MAF-000</span>
-                    <button type="button" class="btn btn-sm btn-outline-secondary font-mono" onclick="navigator.clipboard.writeText(currentMafiaRoomId); alert('Код комнаты скопирован.');">
+                    <button type="button" id="copyRoomCodeBtn" class="btn btn-sm btn-outline-secondary font-mono" onclick="copyMafiaRoomCode()">
                         <i class="bi bi-copy"></i> Копировать код
                     </button>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn-shiny btn-shiny-danger btn-sm" onclick="leaveMafiaRoom()">
+                    <button type="button" id="leaveMafiaRoomBtn" class="btn-shiny btn-shiny-danger btn-sm" onclick="leaveMafiaRoom()">
                         <i class="bi bi-door-closed"></i> Покинуть комнату
                     </button>
                 </div>
@@ -266,7 +266,7 @@
                                     <span class="font-mono text-secondary small">ВАША СЕКРЕТНАЯ КАРТА:</span>
                                     <span id="myAliveBadge" class="badge bg-success-subtle text-success-emphasis font-mono">ЖИВ</span>
                                 </div>
-                                <button type="button" class="btn btn-sm btn-outline-secondary font-mono" onclick="toggleRoleCardVisibility()">
+                                <button type="button" id="toggleRoleBtn" class="btn btn-sm btn-outline-secondary font-mono" onclick="toggleRoleCardVisibility()">
                                     <i id="roleCardEyeIcon" class="bi bi-eye"></i> <span class="d-none d-sm-inline">Показать/скрыть</span>
                                 </button>
                             </div>
@@ -301,7 +301,7 @@
                             <div id="chatMessagesBox" class="chat-box mb-2"></div>
                             <div class="d-flex gap-2">
                                 <input type="text" id="chatInput" class="form-control form-control-sm font-mono" placeholder="Сообщение в эфир...">
-                                <button type="button" class="btn-shiny btn-sm" onclick="sendChatMessage()">
+                                <button type="button" id="sendChatBtn" class="btn-shiny btn-sm" onclick="sendChatMessage()">
                                     <i class="bi bi-send"></i>
                                 </button>
                             </div>
@@ -331,7 +331,7 @@
                     <button type="button" id="hostRestartGameBtn" class="btn-shiny btn-shiny-primary px-4 py-2" onclick="hostRestartGame()">
                         <i class="bi bi-arrow-clockwise"></i> Перезапустить лобби
                     </button>
-                    <button type="button" class="btn-shiny px-4 py-2" onclick="leaveMafiaRoom()">
+                    <button type="button" id="leaveMafiaRoomBtn2" class="btn-shiny px-4 py-2" onclick="leaveMafiaRoom()">
                         <i class="bi bi-door-closed"></i> Вернуться в список комнат
                     </button>
                 </div>

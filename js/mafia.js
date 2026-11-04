@@ -46,6 +46,22 @@ function playPhaseChangeSound(phase) {
     }
 }
 
+// ─── Ожидание инициализации Firebase ────────────────────────────────────────
+
+async function waitForFirebase(timeoutMs = 3000) {
+    if (typeof fbAvailable !== 'undefined' && fbAvailable && typeof db !== 'undefined' && db) {
+        return true;
+    }
+    const start = Date.now();
+    while (Date.now() - start < timeoutMs) {
+        if (typeof fbAvailable !== 'undefined' && fbAvailable && typeof db !== 'undefined' && db) {
+            return true;
+        }
+        await new Promise(r => setTimeout(r, 100));
+    }
+    return !!(typeof fbAvailable !== 'undefined' && fbAvailable && typeof db !== 'undefined' && db);
+}
+
 // ─── Хранение и идентификация текущего игрока ──────────────────────────────
 
 function getCurrentPlayerInfo() {
@@ -71,96 +87,109 @@ function getCurrentPlayerInfo() {
 // ─── Создание комнаты ───────────────────────────────────────────────────────
 
 async function createMafiaRoom() {
-    if (!fbAvailable || !db) {
-        alert('Ошибка: облачная база Firestore недоступна.');
-        return;
+    const btn = document.getElementById('createMafiaRoomBtn');
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Создание комнаты...';
     }
 
-    const player = getCurrentPlayerInfo();
-    const code = 'MAF-' + Math.floor(100 + Math.random() * 900);
-    const roomRef = db.collection('mafia_rooms').doc(code);
-
-    const discussionTime = parseInt(document.getElementById('settingDiscussionTime')?.value || 90, 10);
-    const votingTime = parseInt(document.getElementById('settingVotingTime')?.value || 45, 10);
-    const nightTime = parseInt(document.getElementById('settingNightTime')?.value || 45, 10);
-
-    const roleManiac = !!document.getElementById('roleManiacCheckbox')?.checked;
-    const roleCourtesan = !!document.getElementById('roleCourtesanCheckbox')?.checked;
-    const roleJournalist = !!document.getElementById('roleJournalistCheckbox')?.checked;
-
-    const initialData = {
-        roomId: code,
-        createdAt: Date.now(),
-        hostId: player.id,
-        hostName: player.name,
-        status: 'lobby', // lobby | role_reveal | night | day | voting | finished
-        round: 1,
-        timerSeconds: 0,
-        timerEndsAt: null,
-        settings: {
-            discussionTime,
-            votingTime,
-            nightTime,
-            customRoles: {
-                maniac: roleManiac,
-                courtesan: roleCourtesan,
-                journalist: roleJournalist
-            }
-        },
-        players: {
-            [player.id]: {
-                id: player.id,
-                name: player.name,
-                avatar: player.avatar,
-                isHost: true,
-                isAlive: true,
-                role: null,
-                voteTarget: null,
-                nightTarget: null,
-                checkedBySheriff: false,
-                healedByDoctor: false,
-                blockedByCourtesan: false
-            }
-        },
-        nightActions: {
-            mafiaTarget: null,
-            doctorTarget: null,
-            sheriffTarget: null,
-            maniacTarget: null,
-            courtesanTarget: null
-        },
-        nightResults: {
-            summaryText: 'Партия еще не началась.'
-        },
-        voting: {
-            votes: {},
-            eliminated: null
-        },
-        winner: null,
-        logs: [
-            {
-                time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-                text: `Комната ${code} сформирована. Ведущий: ${player.name}.`,
-                isPrivate: false
-            }
-        ],
-        chat: [
-            {
-                id: 'sys_' + Date.now(),
-                senderName: 'СИСТЕМА',
-                text: 'Добро пожаловать в комнату игры Мафия. Ожидание подключения участников.',
-                channel: 'general',
-                time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
-            }
-        ]
-    };
-
     try {
+        const isReady = await waitForFirebase(3500);
+        if (!isReady || !db) {
+            alert('Ошибка: облачная база Firestore недоступна. Пожалуйста, обновите страницу.');
+            return;
+        }
+
+        const player = getCurrentPlayerInfo();
+        const code = 'MAF-' + Math.floor(100 + Math.random() * 900);
+        const roomRef = db.collection('mafia_rooms').doc(code);
+
+        const discussionTime = parseInt(document.getElementById('settingDiscussionTime')?.value || 90, 10);
+        const votingTime = parseInt(document.getElementById('settingVotingTime')?.value || 45, 10);
+        const nightTime = parseInt(document.getElementById('settingNightTime')?.value || 45, 10);
+
+        const roleManiac = !!document.getElementById('roleManiacCheckbox')?.checked;
+        const roleCourtesan = !!document.getElementById('roleCourtesanCheckbox')?.checked;
+        const roleJournalist = !!document.getElementById('roleJournalistCheckbox')?.checked;
+
+        const initialData = {
+            roomId: code,
+            createdAt: Date.now(),
+            hostId: player.id,
+            hostName: player.name,
+            status: 'lobby', // lobby | role_reveal | night | day | voting | finished
+            round: 1,
+            timerSeconds: 0,
+            timerEndsAt: null,
+            settings: {
+                discussionTime,
+                votingTime,
+                nightTime,
+                customRoles: {
+                    maniac: roleManiac,
+                    courtesan: roleCourtesan,
+                    journalist: roleJournalist
+                }
+            },
+            players: {
+                [player.id]: {
+                    id: player.id,
+                    name: player.name,
+                    avatar: player.avatar,
+                    isHost: true,
+                    isAlive: true,
+                    role: null,
+                    voteTarget: null,
+                    nightTarget: null,
+                    checkedBySheriff: false,
+                    healedByDoctor: false,
+                    blockedByCourtesan: false
+                }
+            },
+            nightActions: {
+                mafiaTarget: null,
+                doctorTarget: null,
+                sheriffTarget: null,
+                maniacTarget: null,
+                courtesanTarget: null
+            },
+            nightResults: {
+                summaryText: 'Партия еще не началась.'
+            },
+            voting: {
+                votes: {},
+                eliminated: null
+            },
+            winner: null,
+            logs: [
+                {
+                    time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+                    text: `Комната ${code} сформирована. Ведущий: ${player.name}.`,
+                    isPrivate: false
+                }
+            ],
+            chat: [
+                {
+                    id: 'sys_' + Date.now(),
+                    senderName: 'СИСТЕМА',
+                    text: 'Добро пожаловать в комнату игры Мафия. Ожидание подключения участников.',
+                    channel: 'general',
+                    time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
+                }
+            ]
+        };
+
         await roomRef.set(initialData);
         enterMafiaRoom(code);
     } catch (err) {
         console.error('Ошибка создания комнаты:', err);
-        alert('Не удалось создать комнату: ' + err.message);
+        alert('Не удалось создать комнату: ' + (err.message || err));
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
     }
 }
 
@@ -176,59 +205,76 @@ async function joinMafiaRoom(roomCode) {
         return;
     }
 
-    if (!fbAvailable || !db) {
-        alert('Ошибка: облачная база Firestore недоступна.');
-        return;
+    const btn = document.getElementById('joinMafiaRoomBtn');
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Подключение...';
     }
 
-    const roomRef = db.collection('mafia_rooms').doc(roomCode);
-    const snap = await roomRef.get();
-    if (!snap.exists) {
-        alert(`Комната ${roomCode} не найдена. Проверьте правильность кода.`);
-        return;
-    }
-
-    const data = snap.data();
-    if (data.status !== 'lobby') {
-        const player = getCurrentPlayerInfo();
-        if (!data.players || !data.players[player.id]) {
-            alert('Игра в этой комнате уже запущена. Подключение новых игроков заблокировано.');
+    try {
+        const isReady = await waitForFirebase(3500);
+        if (!isReady || !db) {
+            alert('Ошибка: облачная база Firestore недоступна.');
             return;
         }
-    }
 
-    const player = getCurrentPlayerInfo();
-    const updatePath = `players.${player.id}`;
+        const roomRef = db.collection('mafia_rooms').doc(roomCode);
+        const snap = await roomRef.get();
+        if (!snap.exists) {
+            alert(`Комната ${roomCode} не найдена. Проверьте правильность кода.`);
+            return;
+        }
 
-    const playerData = data.players && data.players[player.id] ? data.players[player.id] : {
-        id: player.id,
-        name: player.name,
-        avatar: player.avatar,
-        isHost: (data.hostId === player.id),
-        isAlive: true,
-        role: null,
-        voteTarget: null,
-        nightTarget: null,
-        checkedBySheriff: false,
-        healedByDoctor: false,
-        blockedByCourtesan: false
-    };
+        const data = snap.data();
+        const player = getCurrentPlayerInfo();
 
-    const newLogs = [...(data.logs || [])];
-    if (!data.players || !data.players[player.id]) {
-        newLogs.push({
-            time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
-            text: `Игрок ${player.name} подключился к комнате.`,
-            isPrivate: false
+        if (data.status !== 'lobby') {
+            if (!data.players || !data.players[player.id]) {
+                alert('Игра в этой комнате уже запущена. Подключение новых игроков заблокировано.');
+                return;
+            }
+        }
+
+        const updatePath = `players.${player.id}`;
+        const playerData = data.players && data.players[player.id] ? data.players[player.id] : {
+            id: player.id,
+            name: player.name,
+            avatar: player.avatar,
+            isHost: (data.hostId === player.id),
+            isAlive: true,
+            role: null,
+            voteTarget: null,
+            nightTarget: null,
+            checkedBySheriff: false,
+            healedByDoctor: false,
+            blockedByCourtesan: false
+        };
+
+        const newLogs = [...(data.logs || [])];
+        if (!data.players || !data.players[player.id]) {
+            newLogs.push({
+                time: new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' }),
+                text: `Игрок ${player.name} подключился к комнате.`,
+                isPrivate: false
+            });
+        }
+
+        await roomRef.update({
+            [updatePath]: playerData,
+            logs: newLogs
         });
+
+        enterMafiaRoom(roomCode);
+    } catch (err) {
+        console.error('Ошибка подключения к комнате:', err);
+        alert('Ошибка подключения: ' + (err.message || err));
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
     }
-
-    await roomRef.update({
-        [updatePath]: playerData,
-        logs: newLogs
-    });
-
-    enterMafiaRoom(roomCode);
 }
 
 // ─── Вход в комнату и подписка на изменения ─────────────────────────────────
@@ -1058,6 +1104,19 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
+function copyMafiaRoomCode() {
+    if (!currentMafiaRoomId) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(currentMafiaRoomId).then(() => {
+            alert('Код комнаты скопирован: ' + currentMafiaRoomId);
+        }).catch(() => {
+            prompt('Скопируйте код комнаты вручную:', currentMafiaRoomId);
+        });
+    } else {
+        prompt('Скопируйте код комнаты вручную:', currentMafiaRoomId);
+    }
+}
+
 async function kickPlayer(uid) {
     if (!currentMafiaRoomId || !currentMafiaRoomData) return;
     if (!confirm('Исключить этого участника из комнаты?')) return;
@@ -1079,22 +1138,78 @@ async function kickPlayer(uid) {
     });
 }
 
+// ─── Привязка функций к глобальной области видимости window ────────────────
+
+window.createMafiaRoom = createMafiaRoom;
+window.joinMafiaRoom = joinMafiaRoom;
+window.leaveMafiaRoom = leaveMafiaRoom;
+window.copyMafiaRoomCode = copyMafiaRoomCode;
+window.startMafiaGame = startMafiaGame;
+window.hostAdvancePhase = hostAdvancePhase;
+window.toggleRoleCardVisibility = toggleRoleCardVisibility;
+window.setChatChannel = setChatChannel;
+window.sendChatMessage = sendChatMessage;
+window.hostRestartGame = hostRestartGame;
+window.refreshRoomsList = refreshRoomsList;
+window.kickPlayer = kickPlayer;
+window.submitNightAction = submitNightAction;
+window.submitVote = submitVote;
+
 // ─── Инициализация страницы Мафии ───────────────────────────────────────────
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Восстановление последней комнаты, если была
-    const lastRoom = localStorage.getItem('lastMafiaRoomId');
-    if (lastRoom && document.getElementById('screenRoom')) {
-        enterMafiaRoom(lastRoom);
-    } else {
-        refreshRoomsList();
-    }
+document.addEventListener('DOMContentLoaded', async () => {
+    // Прямая привязка обработчиков клика к кнопкам через addEventListener
+    document.getElementById('createMafiaRoomBtn')?.addEventListener('click', createMafiaRoom);
+    document.getElementById('joinMafiaRoomBtn')?.addEventListener('click', () => joinMafiaRoom());
+    document.getElementById('refreshRoomsBtn')?.addEventListener('click', refreshRoomsList);
+    document.getElementById('copyRoomCodeBtn')?.addEventListener('click', copyMafiaRoomCode);
+    document.getElementById('leaveMafiaRoomBtn')?.addEventListener('click', leaveMafiaRoom);
+    document.getElementById('leaveMafiaRoomBtn2')?.addEventListener('click', leaveMafiaRoom);
+    document.getElementById('startGameBtn')?.addEventListener('click', startMafiaGame);
+    document.getElementById('hostNextPhaseBtn')?.addEventListener('click', hostAdvancePhase);
+    document.getElementById('toggleRoleBtn')?.addEventListener('click', toggleRoleCardVisibility);
+    document.getElementById('chatTabGeneral')?.addEventListener('click', () => setChatChannel('general'));
+    document.getElementById('chatTabMafia')?.addEventListener('click', () => setChatChannel('mafia'));
+    document.getElementById('sendChatBtn')?.addEventListener('click', sendChatMessage);
+    document.getElementById('hostRestartGameBtn')?.addEventListener('click', hostRestartGame);
 
-    // Слушатель Enter для чата
+    // Enter на инпуте кода комнаты
+    document.getElementById('joinRoomInput')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            joinMafiaRoom();
+        }
+    });
+
+    // Слушатель Enter для инпута чата
     document.getElementById('chatInput')?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
             sendChatMessage();
         }
     });
+
+    // Восстановление последней комнаты, если была
+    const lastRoom = localStorage.getItem('lastMafiaRoomId');
+    if (lastRoom && document.getElementById('screenRoom')) {
+        const isReady = await waitForFirebase(2500);
+        if (isReady && db) {
+            try {
+                const snap = await db.collection('mafia_rooms').doc(lastRoom).get();
+                if (snap.exists) {
+                    enterMafiaRoom(lastRoom);
+                } else {
+                    localStorage.removeItem('lastMafiaRoomId');
+                    refreshRoomsList();
+                }
+            } catch (e) {
+                localStorage.removeItem('lastMafiaRoomId');
+                refreshRoomsList();
+            }
+        } else {
+            refreshRoomsList();
+        }
+    } else {
+        refreshRoomsList();
+    }
 });
