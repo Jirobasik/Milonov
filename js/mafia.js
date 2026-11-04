@@ -280,6 +280,11 @@ async function joinMafiaRoom(roomCode) {
 // ─── Вход в комнату и подписка на изменения ─────────────────────────────────
 
 function enterMafiaRoom(roomId) {
+    if (activeRoomsUnsubscribe) {
+        activeRoomsUnsubscribe();
+        activeRoomsUnsubscribe = null;
+    }
+
     currentMafiaRoomId = roomId;
     localStorage.setItem('lastMafiaRoomId', roomId);
 
@@ -293,7 +298,7 @@ function enterMafiaRoom(roomId) {
 
     mafiaRoomUnsubscribe = db.collection('mafia_rooms').doc(roomId).onSnapshot((doc) => {
         if (!doc.exists) {
-            alert('Комната была удалена ведущим.');
+            alert('Комната была удалена.');
             leaveMafiaRoom();
             return;
         }
@@ -316,7 +321,7 @@ function leaveMafiaRoom() {
 
     document.getElementById('screenRoom')?.classList.add('d-none');
     document.getElementById('screenBrowser')?.classList.remove('d-none');
-    refreshRoomsList();
+    startActiveRoomsRealtimeSync();
 }
 
 // ─── Рендеринг состояния игры ───────────────────────────────────────────────
@@ -1068,91 +1073,139 @@ function renderHostLog(room, isHost) {
 
 // ─── Список открытых комнат (Браузер) ───────────────────────────────────────
 
-async function refreshRoomsList() {
-    const container = document.getElementById('activeRoomsList');
-    if (!container || !fbAvailable || !db) return;
+// ─── Проверка прав Администратора ──────────────────────────────────────────
 
-    container.innerHTML = '<div class="text-secondary font-mono small">Загрузка комнат...</div>';
-
+function checkIsUserAdmin() {
+    if (typeof isCurrentAdmin === 'function' && isCurrentAdmin()) return true;
+    const uid = localStorage.getItem('userId');
+    if (uid === '264-013' || uid === '859-200') return true;
+    if (localStorage.getItem('isAdmin') === 'true') return true;
     try {
-        const snap = await db.collection('mafia_rooms').limit(12).get();
-        if (snap.empty) {
-            container.innerHTML = '<div class="text-secondary font-mono small p-3 rounded bg-body-tertiary border border-secondary-subtle">Нет активных комнат. Создайте новую.</div>';
-            return;
-        }
-
-        container.innerHTML = '';
-        const player = getCurrentPlayerInfo();
-        const isAdmin = (typeof isCurrentAdmin === 'function' && isCurrentAdmin());
-
-        snap.forEach(doc => {
-            const data = doc.data();
-            const count = Object.keys(data.players || {}).length;
-            const isHost = (data.hostId === player.id);
-            const canDelete = isHost || isAdmin || count === 0;
-
-            const item = document.createElement('div');
-            item.className = 'col-md-6 mb-2';
-            item.innerHTML = `
-                <div class="spotlight-card p-3 d-flex align-items-center justify-content-between">
-                    <div>
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="font-mono fw-bold">${data.roomId}</span>
-                            ${isHost ? '<span class="badge bg-secondary font-mono small">Ваша комната</span>' : ''}
-                        </div>
-                        <div class="small text-secondary">Ведущий: ${escapeHtml(data.hostName || '—')} · ${count} игроков</div>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <button class="btn-shiny btn-sm" onclick="joinMafiaRoom('${data.roomId}')">
-                            Войти
-                        </button>
-                        ${canDelete ? `
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteRoomFromList('${data.roomId}')" title="Удалить комнату">
-                                <i class="bi bi-trash3"></i>
-                            </button>
-                        ` : ''}
-                    </div>
-                </div>
-            `;
-            container.appendChild(item);
-        });
-    } catch (err) {
-        container.innerHTML = '<div class="text-danger font-mono small">Ошибка получения списка комнат.</div>';
-    }
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const u = users.find(x => x.userId === uid);
+        if (u && (u.isAdmin === true || u.role === 'admin' || u.role === 'Админ')) return true;
+    } catch (e) {}
+    return false;
 }
 
-// ─── Удаление комнат ────────────────────────────────────────────────────────
+// ─── Список открытых комнат (Автоматическая Realtime синхронизация) ──────────
 
-async function deleteMafiaRoom() {
-    if (!currentMafiaRoomId || !db) return;
-    const roomId = currentMafiaRoomId;
-    if (!confirm(`Вы действительно хотите удалить комнату ${roomId}? Все участники вернутся в лобби.`)) {
+let activeRoomsUnsubscribe = null;
+
+async function startActiveRoomsRealtimeSync() {
+    const container = document.getElementById('activeRoomsList');
+    if (!container) return;
+
+    container.innerHTML = '<div class="col-12 text-secondary font-mono small p-2"><span class="spinner-border spinner-border-sm me-2"></span>Автоматическая синхронизация лобби...</div>';
+
+    const isReady = await waitForFirebase(5000);
+    if (!isReady || !db) {
+        container.innerHTML = '<div class="col-12 text-secondary font-mono small p-2">Подключение к базе данных... <button class="btn btn-sm btn-link p-0 text-white" onclick="startActiveRoomsRealtimeSync()">Повторить</button></div>';
         return;
     }
 
-    try {
-        if (mafiaRoomUnsubscribe) {
-            mafiaRoomUnsubscribe();
-            mafiaRoomUnsubscribe = null;
-        }
-        await db.collection('mafia_rooms').doc(roomId).delete();
-        localStorage.removeItem('lastMafiaRoomId');
-        currentMafiaRoomId = null;
-        currentMafiaRoomData = null;
+    if (activeRoomsUnsubscribe) {
+        activeRoomsUnsubscribe();
+        activeRoomsUnsubscribe = null;
+    }
 
-        document.getElementById('screenRoom')?.classList.add('d-none');
-        document.getElementById('screenBrowser')?.classList.remove('d-none');
-        refreshRoomsList();
-        alert(`Комната ${roomId} успешно удалена.`);
+    try {
+        // Подписка в реальном времени: новые, обновленные и удаленные комнаты появляются автоматически
+        activeRoomsUnsubscribe = db.collection('mafia_rooms').onSnapshot((snap) => {
+            renderActiveRoomsSnapshot(snap);
+        }, (err) => {
+            console.warn('Realtime sync fallback:', err);
+            db.collection('mafia_rooms').limit(30).get().then(renderActiveRoomsSnapshot).catch(() => {
+                container.innerHTML = '<div class="col-12 text-danger font-mono small p-2">Ошибка загрузки комнат.</div>';
+            });
+        });
     } catch (err) {
-        console.error('Ошибка удаления комнаты:', err);
-        alert('Ошибка при удалении комнаты: ' + (err.message || err));
+        console.error('Ошибка инициализации слушателя комнат:', err);
     }
 }
 
+function renderActiveRoomsSnapshot(snap) {
+    const container = document.getElementById('activeRoomsList');
+    if (!container) return;
+
+    if (!snap || snap.empty) {
+        container.innerHTML = '<div class="col-12 text-secondary font-mono small p-3 rounded bg-body-tertiary border border-secondary-subtle">Нет активных комнат. Сформируйте первую комнату выше!</div>';
+        return;
+    }
+
+    container.innerHTML = '';
+    const player = getCurrentPlayerInfo();
+    const isAdmin = checkIsUserAdmin();
+
+    const statusMap = {
+        lobby: '<span class="badge bg-secondary font-mono small">ОЖИДАНИЕ</span>',
+        role_reveal: '<span class="badge bg-info-subtle text-info font-mono small">СТАРТ</span>',
+        night: '<span class="badge bg-dark border border-secondary font-mono small">НОЧЬ</span>',
+        day: '<span class="badge bg-warning-subtle text-warning font-mono small">ДЕНЬ</span>',
+        voting: '<span class="badge bg-danger-subtle text-danger font-mono small">ГОЛОСОВАНИЕ</span>',
+        finished: '<span class="badge bg-secondary font-mono small">ФИНАЛ</span>'
+    };
+
+    snap.forEach(doc => {
+        const data = doc.data();
+        const roomId = data.roomId || doc.id;
+        const count = Object.keys(data.players || {}).length;
+        const isHost = (data.hostId === player.id);
+        const canDelete = isHost || isAdmin;
+        const statusBadge = statusMap[data.status] || '<span class="badge bg-secondary font-mono small">ИГРА</span>';
+
+        const item = document.createElement('div');
+        item.className = 'col-12 mb-2';
+        item.innerHTML = `
+            <div class="spotlight-card p-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="font-mono fw-bold">${escapeHtml(roomId)}</span>
+                        ${statusBadge}
+                        ${isHost ? '<span class="badge bg-info-subtle text-info font-mono small">Создатель</span>' : ''}
+                        ${isAdmin && !isHost ? '<span class="badge bg-warning-subtle text-warning font-mono small">Админ</span>' : ''}
+                    </div>
+                    <div class="small text-secondary">
+                        Ведущий: <span class="text-white">${escapeHtml(data.hostName || '—')}</span> · 
+                        Участников: <span class="font-mono text-white">${count}</span> (мин. 2)
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn-shiny btn-sm" onclick="joinMafiaRoom('${escapeHtml(roomId)}')">
+                        ${data.status === 'lobby' ? 'Подключиться' : 'Войти'}
+                    </button>
+                    ${canDelete ? `
+                        <button type="button" class="btn btn-sm btn-outline-danger font-mono" onclick="deleteRoomFromList('${escapeHtml(roomId)}')" title="Удалить комнату (${isAdmin ? 'Администратор' : 'Создатель'})">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+        container.appendChild(item);
+    });
+}
+
+async function refreshRoomsList() {
+    await startActiveRoomsRealtimeSync();
+}
+
+// ─── Удаление комнат (только в лобби игр для админа и создателя) ────────────
+
 async function deleteRoomFromList(roomId) {
-    if (!roomId || !db) return;
-    if (!confirm(`Вы действительно хотите удалить комнату ${roomId}?`)) {
+    if (!roomId) return;
+    const isAdmin = checkIsUserAdmin();
+    const promptText = isAdmin 
+        ? `[Права Администратора]\nВы действительно хотите безвозвратно удалить комнату ${roomId}?` 
+        : `Вы уверены, что хотите удалить комнату ${roomId}?`;
+
+    if (!confirm(promptText)) {
+        return;
+    }
+
+    const isReady = await waitForFirebase(3000);
+    if (!isReady || !db) {
+        alert('Ошибка: облачная база Firestore недоступна.');
         return;
     }
 
@@ -1161,7 +1214,7 @@ async function deleteRoomFromList(roomId) {
         if (localStorage.getItem('lastMafiaRoomId') === roomId) {
             localStorage.removeItem('lastMafiaRoomId');
         }
-        refreshRoomsList();
+        // Realtime listener автоматически перерисует список
     } catch (err) {
         console.error('Ошибка удаления комнаты:', err);
         alert('Не удалось удалить комнату: ' + (err.message || err));
@@ -1219,7 +1272,6 @@ async function kickPlayer(uid) {
 window.createMafiaRoom = createMafiaRoom;
 window.joinMafiaRoom = joinMafiaRoom;
 window.leaveMafiaRoom = leaveMafiaRoom;
-window.deleteMafiaRoom = deleteMafiaRoom;
 window.deleteRoomFromList = deleteRoomFromList;
 window.copyMafiaRoomCode = copyMafiaRoomCode;
 window.startMafiaGame = startMafiaGame;
@@ -1229,6 +1281,7 @@ window.setChatChannel = setChatChannel;
 window.sendChatMessage = sendChatMessage;
 window.hostRestartGame = hostRestartGame;
 window.refreshRoomsList = refreshRoomsList;
+window.startActiveRoomsRealtimeSync = startActiveRoomsRealtimeSync;
 window.kickPlayer = kickPlayer;
 window.submitNightAction = submitNightAction;
 window.submitVote = submitVote;
@@ -1243,8 +1296,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('copyRoomCodeBtn')?.addEventListener('click', copyMafiaRoomCode);
     document.getElementById('leaveMafiaRoomBtn')?.addEventListener('click', leaveMafiaRoom);
     document.getElementById('leaveMafiaRoomBtn2')?.addEventListener('click', leaveMafiaRoom);
-    document.getElementById('deleteMafiaRoomBtn')?.addEventListener('click', deleteMafiaRoom);
-    document.getElementById('deleteMafiaRoomBtn2')?.addEventListener('click', deleteMafiaRoom);
     document.getElementById('startGameBtn')?.addEventListener('click', startMafiaGame);
     document.getElementById('hostNextPhaseBtn')?.addEventListener('click', hostAdvancePhase);
     document.getElementById('toggleRoleBtn')?.addEventListener('click', toggleRoleCardVisibility);
@@ -1269,7 +1320,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Восстановление последней комнаты, если была
+    // Автоматическая загрузка списка лобби в реальном времени при входе
+    startActiveRoomsRealtimeSync();
+
+    // Восстановление последней активной комнаты, если игрок не выходил из нее
     const lastRoom = localStorage.getItem('lastMafiaRoomId');
     if (lastRoom && document.getElementById('screenRoom')) {
         const isReady = await waitForFirebase(2500);
@@ -1280,16 +1334,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                     enterMafiaRoom(lastRoom);
                 } else {
                     localStorage.removeItem('lastMafiaRoomId');
-                    refreshRoomsList();
                 }
             } catch (e) {
                 localStorage.removeItem('lastMafiaRoomId');
-                refreshRoomsList();
             }
-        } else {
-            refreshRoomsList();
         }
-    } else {
-        refreshRoomsList();
     }
 });
