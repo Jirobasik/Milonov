@@ -144,7 +144,9 @@ async function createMafiaRoom() {
                     nightTarget: null,
                     checkedBySheriff: false,
                     healedByDoctor: false,
-                    blockedByCourtesan: false
+                    blockedByCourtesan: false,
+                    joinedAt: Date.now(),
+                    seatNumber: 1
                 }
             },
             nightActions: {
@@ -223,6 +225,8 @@ async function joinMafiaRoom(roomCode) {
 
         if (!playerData) {
             const isMidGame = (data.status !== 'lobby');
+            const existingSeats = Object.values(data.players || {}).map(p => Number(p.seatNumber) || 0);
+            const nextSeat = existingSeats.length > 0 ? Math.max(...existingSeats, 0) + 1 : 1;
             playerData = {
                 id: player.id,
                 name: player.name,
@@ -235,7 +239,9 @@ async function joinMafiaRoom(roomCode) {
                 nightTarget: null,
                 checkedBySheriff: false,
                 healedByDoctor: false,
-                blockedByCourtesan: false
+                blockedByCourtesan: false,
+                joinedAt: Date.now(),
+                seatNumber: nextSeat
             };
         }
 
@@ -362,40 +368,97 @@ function renderMafiaRoomState(room) {
     renderHostLog(room, isHost);
 }
 
+// ─── Статичная фиксация позиций игроков (чтобы не скакали) ─────────────────
+
+function getStaticSortedPlayers(playersMap, hostId) {
+    if (!playersMap || typeof playersMap !== 'object') return [];
+    const list = Object.values(playersMap);
+
+    return list.sort((a, b) => {
+        // 1. По постоянному номеру места (seatNumber), если задан
+        const seatA = Number(a.seatNumber) || 0;
+        const seatB = Number(b.seatNumber) || 0;
+        if (seatA > 0 && seatB > 0 && seatA !== seatB) {
+            return seatA - seatB;
+        }
+        if (seatA > 0 && seatB <= 0) return -1;
+        if (seatA <= 0 && seatB > 0) return 1;
+
+        // 2. Ведущий всегда на месте №1 (стол ведущего)
+        const aIsHost = !!(a.isHost || (hostId && a.id === hostId));
+        const bIsHost = !!(b.isHost || (hostId && b.id === hostId));
+        if (aIsHost && !bIsHost) return -1;
+        if (!aIsHost && bIsHost) return 1;
+
+        // 3. По времени присоединения (joinedAt)
+        const timeA = Number(a.joinedAt) || 0;
+        const timeB = Number(b.joinedAt) || 0;
+        if (timeA > 0 && timeB > 0 && timeA !== timeB) {
+            return timeA - timeB;
+        }
+
+        // 4. Гарантированно детерминированный порядок по ID
+        return String(a.id || '').localeCompare(String(b.id || ''));
+    });
+}
+
 // ─── Отрисовка списка игроков в лобби ────────────────────────────────────────
 
 function renderLobbyPlayers(room, isHost) {
     const list = document.getElementById('lobbyPlayersList');
     if (!list) return;
-    list.innerHTML = '';
 
-    const playersArr = Object.values(room.players || {});
-    document.getElementById('lobbyPlayersCount').textContent = `${playersArr.length} участников`;
+    const sortedPlayers = getStaticSortedPlayers(room.players || {}, room.hostId);
+    const countEl = document.getElementById('lobbyPlayersCount');
+    if (countEl) {
+        countEl.textContent = `${sortedPlayers.length} участников`;
+    }
 
-    playersArr.forEach((p, idx) => {
-        const item = document.createElement('div');
-        item.className = 'col-md-4 col-sm-6';
-        item.innerHTML = `
-            <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="font-mono text-secondary small">#${idx + 1}</span>
-                    <span class="fw-semibold">${escapeHtml(p.name)}</span>
+    const existingCards = Array.from(list.querySelectorAll('[data-lobby-player-id]'));
+    const existingIds = existingCards.map(c => c.getAttribute('data-lobby-player-id'));
+    const newIds = sortedPlayers.map(p => p.id);
+
+    const sameOrder = existingIds.length === newIds.length && existingIds.every((id, idx) => id === newIds[idx]);
+
+    if (!sameOrder) {
+        list.innerHTML = '';
+        sortedPlayers.forEach(p => {
+            const item = document.createElement('div');
+            item.className = 'col-md-4 col-sm-6';
+            item.setAttribute('data-lobby-player-id', p.id);
+            list.appendChild(item);
+        });
+    }
+
+    sortedPlayers.forEach((p, idx) => {
+        const item = list.querySelector(`[data-lobby-player-id="${p.id}"]`);
+        if (!item) return;
+
+        const seatIdx = p.seatNumber || (idx + 1);
+        const itemHtml = `
+            <div class="p-3 rounded bg-body-tertiary border border-secondary-subtle d-flex align-items-center justify-content-between" style="min-height: 62px;">
+                <div class="d-flex align-items-center gap-2 overflow-hidden">
+                    <span class="font-mono text-secondary small flex-shrink-0">#${seatIdx}</span>
+                    <span class="fw-semibold text-truncate" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</span>
                 </div>
-                <div>
+                <div class="flex-shrink-0 ms-2">
                     ${p.isHost ? '<span class="badge bg-secondary font-mono">ВЕДУЩИЙ</span>' : '<span class="badge bg-success-subtle text-success-emphasis font-mono">ГОТОВ</span>'}
                     ${isHost && !p.isHost ? `<button class="btn btn-sm btn-outline-danger ms-2 py-0 px-1" onclick="kickPlayer('${p.id}')" title="Исключить">×</button>` : ''}
                 </div>
             </div>
         `;
-        list.appendChild(item);
+
+        if (item.innerHTML !== itemHtml) {
+            item.innerHTML = itemHtml;
+        }
     });
 
     const startBtn = document.getElementById('startGameBtn');
     if (startBtn) {
-        startBtn.disabled = playersArr.length < 2;
-        startBtn.textContent = playersArr.length < 2 
-            ? `Ожидание игроков (минимум 2, сейчас ${playersArr.length})` 
-            : `Раздать роли и начать партию (${playersArr.length} игроков)`;
+        startBtn.disabled = sortedPlayers.length < 2;
+        startBtn.textContent = sortedPlayers.length < 2 
+            ? `Ожидание игроков (минимум 2, сейчас ${sortedPlayers.length})` 
+            : `Раздать роли и начать партию (${sortedPlayers.length} игроков)`;
     }
 }
 
@@ -672,33 +735,56 @@ function toggleRoleCardVisibility() {
 function renderPlayerGrid(room, self) {
     const grid = document.getElementById('gamePlayersGrid');
     if (!grid) return;
-    grid.innerHTML = '';
 
-    const playersArr = Object.values(room.players || {});
+    const sortedPlayers = getStaticSortedPlayers(room.players || {}, room.hostId);
     const isAlive = self && self.isAlive;
     const phase = room.status;
 
-    playersArr.forEach(p => {
+    // Сверяем существующие карточки по data-player-id
+    const existingCards = Array.from(grid.querySelectorAll('[data-player-id]'));
+    const existingIds = existingCards.map(c => c.getAttribute('data-player-id'));
+    const newIds = sortedPlayers.map(p => p.id);
+
+    const sameOrder = existingIds.length === newIds.length && existingIds.every((id, idx) => id === newIds[idx]);
+
+    // Если состав участников изменился, создаем стабильные контейнеры
+    if (!sameOrder) {
+        grid.innerHTML = '';
+        sortedPlayers.forEach(p => {
+            const col = document.createElement('div');
+            col.className = 'col-lg-3 col-md-4 col-sm-6';
+            col.setAttribute('data-player-id', p.id);
+            grid.appendChild(col);
+        });
+    }
+
+    sortedPlayers.forEach((p, idx) => {
+        const col = grid.querySelector(`[data-player-id="${p.id}"]`);
+        if (!col) return;
+
         const isSelf = (p.id === self?.id);
-        const col = document.createElement('div');
-        col.className = 'col-lg-3 col-md-4 col-sm-6';
+        const seatIdx = p.seatNumber || (idx + 1);
 
         let actionButtonHtml = '';
 
         if (isAlive && p.isAlive && !isSelf) {
             if (phase === 'night') {
                 if (self.role === 'mafia') {
-                    actionButtonHtml = `<button class="btn btn-sm btn-outline-danger w-100 font-mono mt-2" onclick="selectNightTarget('${p.id}')">Ликвидировать</button>`;
+                    const isTarget = (self.nightTarget === p.id);
+                    actionButtonHtml = `<button class="btn btn-sm ${isTarget ? 'btn-danger' : 'btn-outline-danger'} w-100 font-mono py-1" onclick="selectNightTarget('${p.id}')">${isTarget ? 'Цель выбрана' : 'Ликвидировать'}</button>`;
                 } else if (self.role === 'doctor') {
-                    actionButtonHtml = `<button class="btn btn-sm btn-outline-success w-100 font-mono mt-2" onclick="selectNightTarget('${p.id}')">Лечить</button>`;
+                    const isTarget = (self.nightTarget === p.id);
+                    actionButtonHtml = `<button class="btn btn-sm ${isTarget ? 'btn-success' : 'btn-outline-success'} w-100 font-mono py-1" onclick="selectNightTarget('${p.id}')">${isTarget ? 'Защищается' : 'Лечить'}</button>`;
                 } else if (self.role === 'sheriff') {
-                    actionButtonHtml = `<button class="btn btn-sm btn-outline-info w-100 font-mono mt-2" onclick="selectNightTarget('${p.id}')">Проверить</button>`;
+                    const isTarget = (self.nightTarget === p.id);
+                    actionButtonHtml = `<button class="btn btn-sm ${isTarget ? 'btn-info' : 'btn-outline-info'} w-100 font-mono py-1" onclick="selectNightTarget('${p.id}')">${isTarget ? 'Проверяется' : 'Проверить'}</button>`;
                 } else if (self.role === 'maniac') {
-                    actionButtonHtml = `<button class="btn btn-sm btn-outline-danger w-100 font-mono mt-2" onclick="selectNightTarget('${p.id}')">Уничтожить</button>`;
+                    const isTarget = (self.nightTarget === p.id);
+                    actionButtonHtml = `<button class="btn btn-sm ${isTarget ? 'btn-danger' : 'btn-outline-danger'} w-100 font-mono py-1" onclick="selectNightTarget('${p.id}')">${isTarget ? 'Цель захвачена' : 'Уничтожить'}</button>`;
                 }
             } else if (phase === 'voting') {
-                const hasVoted = self.voteTarget === p.id;
-                actionButtonHtml = `<button class="btn btn-sm ${hasVoted ? 'btn-danger' : 'btn-outline-danger'} w-100 font-mono mt-2" onclick="castVote('${p.id}')">Голосовать против</button>`;
+                const hasVoted = (self.voteTarget === p.id);
+                actionButtonHtml = `<button class="btn btn-sm ${hasVoted ? 'btn-danger' : 'btn-outline-danger'} w-100 font-mono py-1" onclick="castVote('${p.id}')">${hasVoted ? 'Ваш голос учтен' : 'Голосовать против'}</button>`;
             }
         }
 
@@ -708,28 +794,48 @@ function renderPlayerGrid(room, self) {
             voteCount = Object.values(room.voting.votes).filter(t => t === p.id).length;
         }
 
-        col.innerHTML = `
-            <div class="spotlight-card h-100 p-3 ${!p.isAlive ? 'opacity-50' : ''}">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="badge ${p.isAlive ? 'bg-success-subtle text-success-emphasis' : 'bg-danger-subtle text-danger-emphasis'} font-mono small">
-                        ${p.isAlive ? 'ЖИВ' : 'МЕРТВ'}
-                    </span>
-                    ${voteCount > 0 ? `<span class="badge bg-danger font-mono">${voteCount} голос(ов)</span>` : ''}
+        const cardHtml = `
+            <div class="spotlight-card h-100 p-3 d-flex flex-column justify-content-between ${!p.isAlive ? 'opacity-50' : ''}" style="min-height: 200px;">
+                <div>
+                    <div class="d-flex align-items-center justify-content-between mb-2" style="min-height: 24px;">
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="badge ${p.isAlive ? 'bg-success-subtle text-success-emphasis' : 'bg-danger-subtle text-danger-emphasis'} font-mono small">
+                                ${p.isAlive ? 'ЖИВ' : 'МЕРТВ'}
+                            </span>
+                            <span class="badge bg-body-tertiary border border-secondary-subtle text-secondary font-mono small">
+                                СТОЛ #${seatIdx}
+                            </span>
+                        </div>
+                        <div>
+                            ${voteCount > 0 ? `<span class="badge bg-danger font-mono">${voteCount} голос(ов)</span>` : ''}
+                        </div>
+                    </div>
+
+                    <div class="fw-semibold mb-1 text-truncate" title="${escapeHtml(p.name)}">
+                        ${escapeHtml(p.name)} 
+                        ${isSelf ? '<span class="badge bg-secondary font-mono small ms-1">(Вы)</span>' : ''}
+                    </div>
+
+                    <div class="font-mono text-secondary small mb-2" style="min-height: 20px;">
+                        ID: ${escapeHtml(p.id)}
+                        ${isSelf && self?.role ? ` · <span class="text-white fw-bold">${ROLE_INFO[self.role]?.title || self.role}</span>` : ''}
+                        ${!isSelf && p.role === 'mafia' && self?.role === 'mafia' ? ' · <span class="text-danger fw-bold">Мафия-союзник</span>' : ''}
+                    </div>
+
+                    <div style="min-height: 24px;" class="mb-2">
+                        ${p.isHost ? '<span class="badge bg-secondary-subtle text-secondary-emphasis font-mono small">ВЕДУЩИЙ</span>' : ''}
+                    </div>
                 </div>
-                <div class="fw-semibold mb-1">
-                    ${escapeHtml(p.name)} 
-                    ${isSelf ? '<span class="badge bg-secondary font-mono small ms-1">(Вы)</span>' : ''}
+
+                <div class="mt-2 pt-2 border-top border-secondary-subtle" style="min-height: 40px; display: flex; align-items: center;">
+                    ${actionButtonHtml ? actionButtonHtml : '<div class="w-100 text-secondary small font-mono text-center opacity-50">—</div>'}
                 </div>
-                <div class="font-mono text-secondary small mb-2">
-                    ID: ${p.id}
-                    ${isSelf && self?.role ? `· <span class="text-white fw-bold">${ROLE_INFO[self.role]?.title || self.role}</span>` : ''}
-                    ${!isSelf && p.role === 'mafia' && self?.role === 'mafia' ? '· <span class="text-danger fw-bold">Мафия-союзник</span>' : ''}
-                </div>
-                ${p.isHost ? '<div class="badge bg-secondary-subtle text-secondary-emphasis font-mono small mb-2">ВЕДУЩИЙ</div>' : ''}
-                ${actionButtonHtml}
             </div>
         `;
-        grid.appendChild(col);
+
+        if (col.innerHTML !== cardHtml) {
+            col.innerHTML = cardHtml;
+        }
     });
 
     // Кнопка пропуска при голосовании
@@ -740,7 +846,7 @@ function renderPlayerGrid(room, self) {
             const hasSkipped = self?.voteTarget === 'skip';
             skipVoteContainer.innerHTML = `
                 <button class="btn btn-sm ${hasSkipped ? 'btn-secondary' : 'btn-outline-secondary'} font-mono" onclick="castVote('skip')">
-                    Пропустить голосование (Воздержаться)
+                    ${hasSkipped ? 'Вы воздержались' : 'Пропустить голосование (Воздержаться)'}
                 </button>
             `;
         } else {
@@ -1045,13 +1151,16 @@ function renderGameOverState(room, isHost) {
 
     if (rolesList) {
         rolesList.innerHTML = '';
-        Object.values(room.players || {}).forEach(p => {
+        const sortedPlayers = getStaticSortedPlayers(room.players || {}, room.hostId);
+        sortedPlayers.forEach((p, idx) => {
             const roleData = ROLE_INFO[p.role] || ROLE_INFO.civilian;
+            const seatIdx = p.seatNumber || (idx + 1);
             const item = document.createElement('div');
             item.className = 'col-md-4 col-sm-6';
             item.innerHTML = `
                 <div class="p-2 rounded bg-body-tertiary border border-secondary-subtle font-mono small d-flex align-items-center justify-content-between gap-2">
                     <div class="d-flex align-items-center gap-2 overflow-hidden">
+                        <span class="text-secondary small">#${seatIdx}</span>
                         <img src="${roleData.img || '../images/mafia/civilian.jpg'}" alt="${roleData.title}" style="width: 28px; height: 36px; object-fit: cover; border-radius: 4px;" class="border border-secondary flex-shrink-0">
                         <span class="text-truncate">${escapeHtml(p.name)}</span>
                     </div>
