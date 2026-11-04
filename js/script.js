@@ -136,7 +136,7 @@ function addToRatingTable(username, time) {
 
 // ─── Константы Администрации ─────────────────────────────────────────────────
 
-const ADMIN_USER_IDS = ['264-013', '859-200'];
+const ADMIN_USER_IDS = ['264-013'];
 const HERCULES_MASTER_HASH = 'f6071d2502d20ca631f801302a879657ec5f5b50ff0afd4062a0a1c705c6b3f6'; // sha256("787898Jo")
 
 function isCurrentAdmin() {
@@ -185,9 +185,8 @@ async function registerUser() {
     const fullName     = `${firstName} ${lastName} - ${userId}`;
     const passwordHash = await hashString(password);
 
-    // Автоматические права администратора для Александра Милонова (859-200) и Геркулеса Милонова (264-013)
+    // Автоматические защищённые права только для основателя Геркулеса Милонова (264-013)
     const isAdmin = ADMIN_USER_IDS.includes(userId) ||
-                    (firstName === 'Александр' && lastName === 'Милонов' && userId === '859-200') ||
                     (firstName === 'Геркулес' && lastName === 'Милонов' && userId === '264-013');
 
     // Список всех зарегистрированных пользователей (синхронизируем с Firebase)
@@ -1799,7 +1798,7 @@ function importSiteBackup() {
 }
 
 function factoryResetSite() {
-    if (!confirm('ВНИМАНИЕ: Вы уверены, что хотите выполнить полный сброс сайта? Все настройки, тексты и рейтинг будут удалены. Аккаунты основателей (Геркулеса и Александра) сохранятся.')) {
+    if (!confirm('ВНИМАНИЕ: Вы уверены, что хотите выполнить полный сброс сайта? Все настройки, тексты и рейтинг будут удалены. Аккаунт основателя Геркулеса сохранится.')) {
         return;
     }
 
