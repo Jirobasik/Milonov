@@ -366,6 +366,16 @@ async function loginUser() {
             localStorage.removeItem('userAvatar');
         }
 
+        if (matchedUser.questCompleted) {
+            localStorage.setItem('questCompleted_' + matchedUser.userId, 'true');
+            if (matchedUser.questTime) {
+                localStorage.setItem('questCompletedTime_' + matchedUser.userId, String(matchedUser.questTime));
+            }
+        } else {
+            localStorage.removeItem('questCompleted_' + matchedUser.userId);
+            localStorage.removeItem('questCompletedTime_' + matchedUser.userId);
+        }
+
         alert(`Вход успешен! Добро пожаловать, ${matchedUser.username}.${isAdmin ? ' (Режим Администратора)' : ''}`);
         closeModal();
 
@@ -958,19 +968,8 @@ async function checkCode(step) {
             if (nextInput) nextInput.focus();
         } else {
             // Квест завершён!
-            if (questTimer) {
-                questTimer.endTime = Date.now();
-                const totalSeconds = questTimer.getTime();
-                const username = localStorage.getItem('username');
-                if (username) {
-                    addToRatingTable(username, totalSeconds);
-                }
-                const timeStr = formatTime(totalSeconds);
-                el('finalTimeDisplay') && (el('finalTimeDisplay').textContent = timeStr);
-            }
-            el('quest-completed')?.classList.add('active');
-            updateProgressBar(true);
-            // Уведомление убрано по запросу
+            const totalSeconds = questTimer ? questTimer.getTime() : 0;
+            finishQuest(totalSeconds);
         }
     } else {
         alert('Неправильный ответ. Попробуйте ещё раз!');
@@ -999,21 +998,92 @@ function skipStepAdmin() {
             const nextInput = el(`answer-${currentStep}`);
             if (nextInput) nextInput.focus();
         } else {
-            if (questTimer) {
-                questTimer.endTime = Date.now();
-                const totalSeconds = questTimer.getTime();
-                const username = localStorage.getItem('username');
-                if (username) {
-                    addToRatingTable(username, totalSeconds);
-                }
-                const timeStr = formatTime(totalSeconds);
-                el('finalTimeDisplay') && (el('finalTimeDisplay').textContent = timeStr);
-            }
-            el('quest-completed')?.classList.add('active');
-            updateProgressBar(true);
+            const totalSeconds = questTimer ? questTimer.getTime() : 0;
+            finishQuest(totalSeconds);
         }
     }
 }
+
+// ─── Проверка и фиксация завершения квеста (прохождение строго 1 раз) ────────
+
+function isQuestCompletedForCurrentUser() {
+    const userId = localStorage.getItem('userId');
+    const username = localStorage.getItem('username');
+    if (!userId && !username) return false;
+
+    if (userId && localStorage.getItem('questCompleted_' + userId) === 'true') {
+        return true;
+    }
+    if (localStorage.getItem('questCompleted') === 'true') {
+        return true;
+    }
+
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const user = users.find(u => (userId && u.userId === userId) || (username && u.username === username));
+    if (user && user.questCompleted) {
+        if (userId) localStorage.setItem('questCompleted_' + userId, 'true');
+        return true;
+    }
+
+    return false;
+}
+window.isQuestCompletedForCurrentUser = isQuestCompletedForCurrentUser;
+
+async function finishQuest(totalSeconds) {
+    const userId = localStorage.getItem('userId');
+    const username = localStorage.getItem('username');
+
+    if (questTimer) {
+        questTimer.endTime = Date.now();
+    }
+
+    const timeStr = formatTime(totalSeconds);
+    const finalDisplay = el('finalTimeDisplay');
+    if (finalDisplay) {
+        finalDisplay.textContent = timeStr;
+    }
+
+    if (username) {
+        addToRatingTable(username, totalSeconds);
+    }
+
+    // Фиксация прохождения квеста ТОЛЬКО 1 РАЗ
+    if (userId) {
+        localStorage.setItem('questCompleted_' + userId, 'true');
+        localStorage.setItem('questCompletedTime_' + userId, String(totalSeconds));
+        localStorage.setItem('questCompletedAt_' + userId, String(Date.now()));
+
+        const localUsers = JSON.parse(localStorage.getItem('users') || '[]');
+        const uIdx = localUsers.findIndex(u => u.userId === userId || u.username === username);
+        if (uIdx >= 0) {
+            localUsers[uIdx].questCompleted = true;
+            localUsers[uIdx].questTime = totalSeconds;
+            localUsers[uIdx].questCompletedAt = Date.now();
+            localStorage.setItem('users', JSON.stringify(localUsers));
+        }
+
+        if (typeof fbRecordQuestCompletion === 'function') {
+            fbRecordQuestCompletion(userId, username, totalSeconds);
+        } else if (typeof fbUpdateUserFields === 'function') {
+            fbUpdateUserFields(userId, {
+                questCompleted: true,
+                questTime: totalSeconds,
+                questCompletedAt: Date.now()
+            });
+        }
+    }
+
+    el('quest-completed')?.classList.add('active');
+    updateProgressBar(true);
+
+    const restartBtn = el('restartQuestBtn');
+    if (restartBtn) {
+        restartBtn.style.display = isCurrentAdmin() ? 'inline-block' : 'none';
+    }
+
+    renderQuestStatusUI();
+}
+window.finishQuest = finishQuest;
 
 function updateProgressBar(isComplete = false) {
     const bar = el('questProgressBar');
@@ -1036,11 +1106,58 @@ function renderQuestStatusUI() {
     const btn = el('openQuestBtn');
     const notice = el('questStatusNotice');
     const isAdmin = isCurrentAdmin();
+    const hasCompleted = isQuestCompletedForCurrentUser();
+
+    // Показываем кнопку админского сброса на quest.html, если админ
+    const adminResetBtn = el('adminQuestResetBtn');
+    if (adminResetBtn) {
+        adminResetBtn.style.display = isAdmin ? 'inline-block' : 'none';
+    }
 
     if (!badge && !btn) return;
 
     if (badge) {
-        badge.classList.remove('status-active', 'status-paused', 'status-maintenance');
+        badge.classList.remove('status-active', 'status-paused', 'status-maintenance', 'bg-secondary', 'bg-success-subtle');
+    }
+
+    // 1. Проверка: квест уже пройден пользователем (лимит: 1 раз)
+    if (hasCompleted) {
+        if (badge) {
+            badge.textContent = 'ПРОЙДЕН (1/1)';
+            badge.className = 'badge bg-secondary font-mono border border-secondary-subtle';
+        }
+        if (topBadge) topBadge.textContent = 'Протокол пройден (1/1)';
+        if (notice) {
+            notice.style.display = 'block';
+            notice.style.background = 'rgba(16, 185, 129, 0.08)';
+            notice.style.color = '#6ee7b7';
+            notice.style.border = '1px solid rgba(16, 185, 129, 0.25)';
+            notice.innerHTML = `
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div>
+                        <i class="bi bi-check-circle-fill text-success me-1"></i>
+                        <strong>Вы уже успешно завершили «Квест 1».</strong> Согласно регламенту, прохождение доступно только 1 раз. Результат зафиксирован в общем рейтинге.
+                    </div>
+                    ${isAdmin ? '<button type="button" class="btn btn-sm btn-outline-warning font-mono" onclick="adminResetQuestForSelf()"><i class="bi bi-arrow-clockwise"></i> Сбросить себе [Админ]</button>' : ''}
+                </div>
+            `;
+        }
+        if (btn) {
+            if (isAdmin) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                btn.className = 'btn-shiny btn-sm';
+                btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i> Запустить повторно [Админ-доступ]';
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+                btn.style.cursor = 'not-allowed';
+                btn.className = 'btn-shiny btn-sm';
+                btn.innerHTML = '<i class="bi bi-lock-fill me-1"></i> Квест уже пройден (1/1)';
+            }
+        }
+        return;
     }
 
     if (status === 'maintenance') {
@@ -1119,6 +1236,12 @@ function renderQuestStatusUI() {
 function openQuest() {
     const status = localStorage.getItem('questStatus') || 'active';
     const isAdmin = isCurrentAdmin();
+    const hasCompleted = isQuestCompletedForCurrentUser();
+
+    if (hasCompleted && !isAdmin) {
+        alert('Вы уже успешно завершили этот квест.\n\nСогласно регламенту, пройти испытание можно только 1 раз. Если у вас возникла техническая ошибка или сбой — обратитесь к администраторам для перезапуска.');
+        return;
+    }
 
     if (status !== 'active' && !isAdmin) {
         if (status === 'maintenance') {
@@ -1453,15 +1576,27 @@ async function renderAdminUsersTable() {
         const isFounder = ADMIN_USER_IDS.includes(u.userId);
         const isAdm = isFounder || u.isAdmin;
         const isBanned = !!u.isBanned;
+        const isQuestDone = !!u.questCompleted || (localStorage.getItem('questCompleted_' + u.userId) === 'true');
         const tr = document.createElement('tr');
+
+        const questBadgeHtml = isQuestDone 
+            ? `<span class="badge bg-success-subtle text-success-emphasis border border-success-subtle font-mono small"><i class="bi bi-check2 me-1"></i> Пройден ${u.questTime ? `(${formatTime(u.questTime)})` : ''}</span>`
+            : `<span class="badge bg-secondary-subtle text-secondary-emphasis font-mono small">Не пройден</span>`;
+
+        const resetQuestBtnHtml = `
+            <button type="button" class="btn btn-sm btn-outline-warning btn-reset-quest me-1" data-uid="${escapeHtml(u.userId)}" data-name="${escapeHtml(u.username || u.firstName)}" title="Перезапустить квест для этого игрока">
+                <i class="bi bi-arrow-counterclockwise"></i> Сброс квеста
+            </button>
+        `;
 
         let actionButtons = '';
         if (u.userId === currentUserId) {
-            actionButtons = '<small class="text-muted">Текущая сессия</small>';
+            actionButtons = `${resetQuestBtnHtml} <small class="text-muted">Текущая сессия</small>`;
         } else if (isFounder) {
-            actionButtons = '<span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">Основатель</span>';
+            actionButtons = `${resetQuestBtnHtml} <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle">Основатель</span>`;
         } else {
             actionButtons = `
+                ${resetQuestBtnHtml}
                 <button type="button" class="btn btn-sm btn-outline-secondary btn-toggle-admin me-1" data-uid="${escapeHtml(u.userId)}" title="Переключить роль">${isAdm ? 'Отозвать роль' : 'Назначить админом'}</button>
                 <button type="button" class="btn btn-sm ${isBanned ? 'btn-outline-success btn-unban-user' : 'btn-outline-danger btn-ban-user'} me-1" data-uid="${escapeHtml(u.userId)}">${isBanned ? 'Разблокировать' : 'Заблокировать'}</button>
                 <button type="button" class="btn btn-sm btn-outline-warning btn-reset-pwd me-1" data-uid="${escapeHtml(u.userId)}" title="Сбросить пароль на 123456">Сброс пароля</button>
@@ -1474,10 +1609,21 @@ async function renderAdminUsersTable() {
             <td><code>${escapeHtml(u.userId || '—')}</code></td>
             <td>${escapeHtml(u.email || '—')}</td>
             <td>${isAdm ? '<span class="badge bg-secondary font-mono">Администратор</span>' : '<span class="text-muted">Участник</span>'}</td>
+            <td>${questBadgeHtml}</td>
             <td>${isBanned ? '<span class="badge bg-danger">Заблокирован</span>' : '<span class="badge bg-success">Активен</span>'}</td>
             <td>${actionButtons}</td>
         `;
         tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.btn-reset-quest').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const uid = btn.dataset.uid;
+            const name = btn.dataset.name;
+            if (confirm(`Вы действительно хотите сбросить статус квеста для игрока «${name}» (${uid})?\n\nИгрок сможет пройти «Квест 1» заново.`)) {
+                adminResetQuestForUser(uid);
+            }
+        });
     });
 
     tbody.querySelectorAll('.btn-toggle-admin').forEach(btn => {
@@ -1493,6 +1639,120 @@ async function renderAdminUsersTable() {
         btn.addEventListener('click', () => deleteUser(btn.dataset.uid));
     });
 }
+
+// ─── Административный сброс / перезапуск квеста для игроков ───────────────────
+
+async function adminResetQuestForUser(targetIdOrQuery) {
+    if (!isCurrentAdmin()) {
+        alert('Ошибка доступа: требуется роль администратора.');
+        return false;
+    }
+
+    if (!targetIdOrQuery || !String(targetIdOrQuery).trim()) {
+        alert('Пожалуйста, укажите ID, имя или email пользователя.');
+        return false;
+    }
+
+    const query = String(targetIdOrQuery).trim().toLowerCase();
+    let users = JSON.parse(localStorage.getItem('users') || '[]');
+    if (typeof fbGetUsers === 'function') {
+        try {
+            const fresh = await fbGetUsers();
+            if (fresh && fresh.length) users = fresh;
+        } catch (e) {}
+    }
+
+    const targetUser = users.find(u => 
+        (u.userId && u.userId.toLowerCase() === query) ||
+        (u.username && u.username.toLowerCase() === query) ||
+        (u.email && u.email.toLowerCase() === query) ||
+        ((u.firstName + ' ' + (u.lastName || '')).trim().toLowerCase() === query)
+    );
+
+    const uid = targetUser ? targetUser.userId : String(targetIdOrQuery).trim();
+    const uname = targetUser ? (targetUser.username || targetUser.firstName) : uid;
+
+    // 1. Сбрасываем флаг в объекте пользователя
+    if (targetUser) {
+        targetUser.questCompleted = false;
+        targetUser.questTime = null;
+        delete targetUser.questCompletedAt;
+        delete targetUser.questTime;
+        localStorage.setItem('users', JSON.stringify(users));
+    }
+
+    // 2. Очищаем локальные ключи
+    localStorage.removeItem('questCompleted_' + uid);
+    localStorage.removeItem('questCompletedTime_' + uid);
+    localStorage.removeItem('questCompletedAt_' + uid);
+    if (localStorage.getItem('userId') === uid) {
+        localStorage.removeItem('questCompleted');
+        localStorage.removeItem('questCompletedTime');
+        localStorage.removeItem('questCompletedAt');
+    }
+
+    // 3. Обновляем в Firestore
+    if (typeof fbResetUserQuest === 'function') {
+        await fbResetUserQuest(uid);
+    } else if (typeof fbUpdateUserFields === 'function') {
+        await fbUpdateUserFields(uid, {
+            questCompleted: false,
+            questTime: null,
+            questCompletedAt: null,
+            questResetAt: Date.now(),
+            questResetBy: localStorage.getItem('username') || 'admin'
+        });
+    }
+
+    if (typeof fbAvailable !== 'undefined' && fbAvailable && typeof db !== 'undefined' && db) {
+        try {
+            await db.collection('quest_completions').doc(uid).delete().catch(() => {});
+        } catch (e) {}
+    }
+
+    // 4. Опционально: очистка старого рекорда из таблицы рейтинга
+    if (confirm(`Квест для игрока «${uname}» (ID: ${uid}) успешно сброшен!\n\nИгрок теперь может пройти квест заново.\n\nХотите также удалить предыдущий результат этого игрока из таблицы рейтинга?`)) {
+        if (typeof fbDeleteRatingRecord === 'function') {
+            await fbDeleteRatingRecord(uname);
+        }
+        let ratings = JSON.parse(localStorage.getItem('ratings') || '[]');
+        ratings = ratings.filter(r => r.username !== uname);
+        localStorage.setItem('ratings', JSON.stringify(ratings));
+        if (typeof updateRatingTable === 'function') updateRatingTable();
+        if (typeof renderAdminRatingTable === 'function') renderAdminRatingTable();
+    }
+
+    // 5. Перерисовываем UI
+    if (typeof renderAdminUsersTable === 'function') {
+        renderAdminUsersTable();
+    }
+    if (typeof renderQuestStatusUI === 'function') {
+        renderQuestStatusUI();
+    }
+
+    return true;
+}
+window.adminResetQuestForUser = adminResetQuestForUser;
+
+function adminResetQuestForSelf() {
+    const myId = localStorage.getItem('userId');
+    if (myId) {
+        adminResetQuestForUser(myId);
+    }
+}
+window.adminResetQuestForSelf = adminResetQuestForSelf;
+
+function adminPromptResetPlayerQuest() {
+    if (!isCurrentAdmin()) {
+        alert('Требуются права администратора.');
+        return;
+    }
+    const val = prompt('Введите ID участника (например: 859-200), логин или email игрока, которому нужно перезапустить квест:');
+    if (val && val.trim()) {
+        adminResetQuestForUser(val.trim());
+    }
+}
+window.adminPromptResetPlayerQuest = adminPromptResetPlayerQuest;
 
 function toggleAdminRole(uid) {
     if (ADMIN_USER_IDS.includes(uid)) {
@@ -1972,6 +2232,27 @@ window.onload = function () {
             const skipBtn = el('adminSkipStepBtn');
             if (skipBtn) skipBtn.style.display = 'inline-block';
         }
+
+        // Слушатель сброса квеста для текущего игрока в реальном времени
+        const curUid = localStorage.getItem('userId');
+        if (curUid && typeof fbAvailable !== 'undefined' && fbAvailable && typeof db !== 'undefined' && db) {
+            try {
+                db.collection('users').doc(curUid).onSnapshot((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        const wasCompleted = (localStorage.getItem('questCompleted_' + curUid) === 'true');
+                        if (data.questCompleted === false && wasCompleted) {
+                            localStorage.removeItem('questCompleted_' + curUid);
+                            localStorage.removeItem('questCompletedTime_' + curUid);
+                            renderQuestStatusUI();
+                            alert('Внимание: Администратор сбросил ваш статус прохождения квеста. Теперь вы можете пройти «Квест 1» заново!');
+                        }
+                    }
+                });
+            } catch (e) {
+                console.warn('[Quest] Ошибка подписки на статус пользователя:', e);
+            }
+        }
     }
 
     // Инициализация личного кабинета
@@ -2009,7 +2290,14 @@ window.onload = function () {
     el('openQuestBtn')?.addEventListener('click', openQuest);
     el('adminSkipStepBtn')?.addEventListener('click', skipStepAdmin);
     el('closeQuestBtn')?.addEventListener('click', closeQuest);
-    el('restartQuestBtn')?.addEventListener('click', () => location.reload());
+    el('restartQuestBtn')?.addEventListener('click', () => {
+        if (isCurrentAdmin()) {
+            adminResetQuestForSelf();
+            location.reload();
+        } else {
+            alert('Повторное прохождение запрещено регламентом. Квест можно пройти только 1 раз.');
+        }
+    });
 
     // Личный кабинет: сохранение, аватарка, выход
     el('saveProfileBtn')?.addEventListener('click', saveProfile);
@@ -2029,6 +2317,26 @@ window.onload = function () {
     el('adminSaveBannerBtn')?.addEventListener('click', saveAdminBanner);
     el('adminDisableBannerBtn')?.addEventListener('click', disableAdminBanner);
     el('adminSaveQuestSettingsBtn')?.addEventListener('click', saveAdminQuestSettings);
+    el('adminResetQuestTargetBtn')?.addEventListener('click', () => {
+        const input = el('adminResetQuestTargetInput');
+        const feedback = el('adminResetQuestFeedback');
+        const query = (input?.value || '').trim();
+        if (!query) {
+            alert('Укажите ID (например: 859-200), логин или email игрока.');
+            return;
+        }
+        adminResetQuestForUser(query).then(res => {
+            if (res) {
+                if (input) input.value = '';
+                if (feedback) {
+                    feedback.style.display = 'block';
+                    feedback.className = 'small font-mono mt-2 text-success';
+                    feedback.innerHTML = `<i class="bi bi-check-circle me-1"></i> Квест успешно сброшен для участника «${escapeHtml(query)}»!`;
+                    setTimeout(() => { if (feedback) feedback.style.display = 'none'; }, 4500);
+                }
+            }
+        });
+    });
     el('adminAddRatingBtn')?.addEventListener('click', adminAddRatingRecord);
     el('adminSaveAboutTextBtn')?.addEventListener('click', saveAdminAboutText);
     el('adminResetAboutTextBtn')?.addEventListener('click', resetAdminAboutText);

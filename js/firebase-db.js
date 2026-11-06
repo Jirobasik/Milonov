@@ -129,6 +129,57 @@ async function fbDeleteUser(userId) {
 }
 
 /**
+ * Зафиксировать завершение квеста пользователем в облаке
+ */
+async function fbRecordQuestCompletion(userId, username, totalSeconds) {
+  const updates = {
+    questCompleted: true,
+    questTime: totalSeconds,
+    questCompletedAt: Date.now()
+  };
+  await fbUpdateUserFields(userId, updates);
+
+  if (!fbAvailable || !db) return true;
+  try {
+    await db.collection('quest_completions').doc(userId).set({
+      userId,
+      username: username || '',
+      questTime: totalSeconds,
+      completedAt: Date.now(),
+      completed: true
+    }, { merge: true });
+    console.log('[Firebase] Завершение квеста зафиксировано в облаке для:', userId);
+    return true;
+  } catch (err) {
+    console.warn('[Firebase] Ошибка записи quest_completions:', err);
+    return false;
+  }
+}
+
+/**
+ * Сбросить статус квеста пользователю (разрешить повторное прохождение)
+ */
+async function fbResetUserQuest(userId) {
+  const updates = {
+    questCompleted: false,
+    questTime: null,
+    questCompletedAt: null,
+    questResetAt: Date.now()
+  };
+  await fbUpdateUserFields(userId, updates);
+
+  if (!fbAvailable || !db) return true;
+  try {
+    await db.collection('quest_completions').doc(userId).delete().catch(() => {});
+    console.log('[Firebase] Статус квеста сброшен в облаке для:', userId);
+    return true;
+  } catch (err) {
+    console.warn('[Firebase] Ошибка сброса quest_completions:', err);
+    return false;
+  }
+}
+
+/**
  * Слушатель пользователей в реальном времени (для панели администратора)
  */
 function fbListenUsers(callback) {
