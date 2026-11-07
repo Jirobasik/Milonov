@@ -1076,11 +1076,6 @@ async function finishQuest(totalSeconds) {
     el('quest-completed')?.classList.add('active');
     updateProgressBar(true);
 
-    const restartBtn = el('restartQuestBtn');
-    if (restartBtn) {
-        restartBtn.style.display = isCurrentAdmin() ? 'inline-block' : 'none';
-    }
-
     renderQuestStatusUI();
 }
 window.finishQuest = finishQuest;
@@ -1105,14 +1100,7 @@ function renderQuestStatusUI() {
     const topBadge = el('questTopStatusBadge');
     const btn = el('openQuestBtn');
     const notice = el('questStatusNotice');
-    const isAdmin = isCurrentAdmin();
     const hasCompleted = isQuestCompletedForCurrentUser();
-
-    // Показываем кнопку админского сброса на quest.html, если админ
-    const adminResetBtn = el('adminQuestResetBtn');
-    if (adminResetBtn) {
-        adminResetBtn.style.display = isAdmin ? 'inline-block' : 'none';
-    }
 
     if (!badge && !btn) return;
 
@@ -1133,29 +1121,18 @@ function renderQuestStatusUI() {
             notice.style.color = '#6ee7b7';
             notice.style.border = '1px solid rgba(16, 185, 129, 0.25)';
             notice.innerHTML = `
-                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-                    <div>
-                        <i class="bi bi-check-circle-fill text-success me-1"></i>
-                        <strong>Вы уже успешно завершили «Квест 1».</strong> Согласно регламенту, прохождение доступно только 1 раз. Результат зафиксирован в общем рейтинге.
-                    </div>
-                    ${isAdmin ? '<button type="button" class="btn btn-sm btn-outline-warning font-mono" onclick="adminResetQuestForSelf()"><i class="bi bi-arrow-clockwise"></i> Сбросить себе [Админ]</button>' : ''}
+                <div>
+                    <i class="bi bi-check-circle-fill text-success me-1"></i>
+                    <strong>Вы уже успешно завершили «Квест 1».</strong> Согласно регламенту, прохождение доступно только 1 раз. Результат зафиксирован в общем рейтинге.
                 </div>
             `;
         }
         if (btn) {
-            if (isAdmin) {
-                btn.disabled = false;
-                btn.style.opacity = '1';
-                btn.style.cursor = 'pointer';
-                btn.className = 'btn-shiny btn-sm';
-                btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i> Запустить повторно [Админ-доступ]';
-            } else {
-                btn.disabled = true;
-                btn.style.opacity = '0.6';
-                btn.style.cursor = 'not-allowed';
-                btn.className = 'btn-shiny btn-sm';
-                btn.innerHTML = '<i class="bi bi-lock-fill me-1"></i> Квест уже пройден (1/1)';
-            }
+            btn.disabled = true;
+            btn.style.opacity = '0.6';
+            btn.style.cursor = 'not-allowed';
+            btn.className = 'btn-shiny btn-sm';
+            btn.innerHTML = '<i class="bi bi-lock-fill me-1"></i> Квест уже пройден (1/1)';
         }
         return;
     }
@@ -1734,26 +1711,6 @@ async function adminResetQuestForUser(targetIdOrQuery) {
 }
 window.adminResetQuestForUser = adminResetQuestForUser;
 
-function adminResetQuestForSelf() {
-    const myId = localStorage.getItem('userId');
-    if (myId) {
-        adminResetQuestForUser(myId);
-    }
-}
-window.adminResetQuestForSelf = adminResetQuestForSelf;
-
-function adminPromptResetPlayerQuest() {
-    if (!isCurrentAdmin()) {
-        alert('Требуются права администратора.');
-        return;
-    }
-    const val = prompt('Введите ID участника (например: 859-200), логин или email игрока, которому нужно перезапустить квест:');
-    if (val && val.trim()) {
-        adminResetQuestForUser(val.trim());
-    }
-}
-window.adminPromptResetPlayerQuest = adminPromptResetPlayerQuest;
-
 function toggleAdminRole(uid) {
     if (ADMIN_USER_IDS.includes(uid)) {
         alert('Права основателей семьи не могут быть отозваны.');
@@ -2290,14 +2247,6 @@ window.onload = function () {
     el('openQuestBtn')?.addEventListener('click', openQuest);
     el('adminSkipStepBtn')?.addEventListener('click', skipStepAdmin);
     el('closeQuestBtn')?.addEventListener('click', closeQuest);
-    el('restartQuestBtn')?.addEventListener('click', () => {
-        if (isCurrentAdmin()) {
-            adminResetQuestForSelf();
-            location.reload();
-        } else {
-            alert('Повторное прохождение запрещено регламентом. Квест можно пройти только 1 раз.');
-        }
-    });
 
     // Личный кабинет: сохранение, аватарка, выход
     el('saveProfileBtn')?.addEventListener('click', saveProfile);
