@@ -100,17 +100,69 @@ async function updateRatingTable() {
         ratings = getUniqueRatings();
     }
 
-    ratings.forEach((rating, index) => {
+    const isAlik = r => (r.username && (r.username.includes('301-420') || r.username.toLowerCase().includes('алик')));
+    const isHercules = r => (r.username && (r.username.includes('264-013') || r.username.toLowerCase().includes('геркулес')));
+
+    // Разделяем участников: соревновательный зачет, спец. номинация и организаторы
+    const competitive = ratings.filter(r => !isAlik(r) && !isHercules(r));
+    competitive.sort((a, b) => a.time - b.time);
+
+    const alikRecord = ratings.find(isAlik);
+    const herculesRecord = ratings.find(isHercules);
+
+    competitive.forEach((rating, index) => {
         const row = document.createElement('tr');
         const td1 = document.createElement('td');
         const td2 = document.createElement('td');
         const td3 = document.createElement('td');
-        td1.textContent = index + 1;
-        td2.textContent = rating.username;
-        td3.textContent = formatTime(rating.time);
+
+        const rank = index + 1;
+        if (rank === 1) {
+            td1.innerHTML = '<span class="badge bg-warning text-dark font-mono px-2 py-1"><i class="bi bi-trophy-fill me-1"></i> 1 МЕСТО</span>';
+            td2.innerHTML = `<strong>${escapeHtml(rating.username)}</strong> <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle ms-2 small">🎁 Секретный приз</span>`;
+        } else if (rank === 2) {
+            td1.innerHTML = '<span class="badge bg-light text-dark font-mono px-2 py-1"><i class="bi bi-award-fill me-1"></i> 2 МЕСТО</span>';
+            td2.innerHTML = `<strong>${escapeHtml(rating.username)}</strong> <span class="badge bg-light-subtle text-light border border-light-subtle ms-2 small">💵 500.000$</span>`;
+        } else if (rank === 3) {
+            td1.innerHTML = '<span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle font-mono px-2 py-1"><i class="bi bi-award me-1"></i> 3 МЕСТО</span>';
+            td2.innerHTML = `<strong>${escapeHtml(rating.username)}</strong> <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle ms-2 small">💵 250.000$</span>`;
+        } else {
+            td1.innerHTML = `<span class="font-mono text-secondary">#${rank}</span>`;
+            td2.innerHTML = escapeHtml(rating.username);
+        }
+
+        td3.innerHTML = `<span class="font-mono fw-semibold">${formatTime(rating.time)}</span>`;
         row.append(td1, td2, td3);
         tbody.appendChild(row);
     });
+
+    // Специальная строка для Алика Милонова (поощрительный приз)
+    if (alikRecord) {
+        const row = document.createElement('tr');
+        row.style.background = 'rgba(14, 165, 233, 0.08)';
+        const td1 = document.createElement('td');
+        const td2 = document.createElement('td');
+        const td3 = document.createElement('td');
+        td1.innerHTML = '<span class="badge bg-info-subtle text-info border border-info-subtle font-mono px-2 py-1">СПЕЦ</span>';
+        td2.innerHTML = `<strong>${escapeHtml(alikRecord.username)}</strong> <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle ms-2 small"><i class="bi bi-gift-fill me-1"></i> Поощрительный приз</span><div class="small text-secondary mt-1">Особая номинация: технический сбой системы (2 прохождения)</div>`;
+        td3.innerHTML = `<span class="font-mono fw-semibold">${formatTime(alikRecord.time)}</span>`;
+        row.append(td1, td2, td3);
+        tbody.appendChild(row);
+    }
+
+    // Строка организатора (Геркулес)
+    if (herculesRecord) {
+        const row = document.createElement('tr');
+        row.style.opacity = '0.75';
+        const td1 = document.createElement('td');
+        const td2 = document.createElement('td');
+        const td3 = document.createElement('td');
+        td1.innerHTML = '<span class="badge bg-secondary-subtle text-secondary-emphasis font-mono">АДМИН</span>';
+        td2.innerHTML = `<span>${escapeHtml(herculesRecord.username)}</span> <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle ms-2 small">Организатор · Вне зачета</span>`;
+        td3.innerHTML = `<span class="font-mono">${formatTime(herculesRecord.time)}</span>`;
+        row.append(td1, td2, td3);
+        tbody.appendChild(row);
+    }
 }
 
 function addToRatingTable(username, time) {
@@ -1054,6 +1106,18 @@ async function finishQuest(totalSeconds) {
         finalDisplay.textContent = timeStr;
     }
 
+    // Защита от повторной фиксации (если игрок не админ и уже есть завершение)
+    if (!isCurrentAdmin() && userId && typeof fbCheckUserQuestCompleted === 'function') {
+        const alreadyDone = await fbCheckUserQuestCompleted(userId);
+        if (alreadyDone && localStorage.getItem('questCompleted_' + userId) === 'true') {
+            console.warn('[Quest] Повторная запись в рейтинг заблокирована для:', userId);
+            el('quest-completed')?.classList.add('active');
+            updateProgressBar(true);
+            renderQuestStatusUI();
+            return;
+        }
+    }
+
     if (username) {
         addToRatingTable(username, totalSeconds);
     }
@@ -1257,13 +1321,29 @@ function renderQuestStatusUI() {
     }
 }
 
-function openQuest() {
+async function openQuest() {
     const status = localStorage.getItem('questStatus') || 'active';
     const isAdmin = isCurrentAdmin();
-    const hasCompleted = isQuestCompletedForCurrentUser();
+    const curUid = localStorage.getItem('userId');
+    let hasCompleted = isQuestCompletedForCurrentUser();
+
+    // Защита от обхода: если локально не отмечено, но игрок не админ — контрольный запрос в Firestore
+    if (!hasCompleted && !isAdmin && curUid && typeof fbCheckUserQuestCompleted === 'function') {
+        try {
+            hasCompleted = await fbCheckUserQuestCompleted(curUid);
+            if (hasCompleted) {
+                localStorage.setItem('questCompleted_' + curUid, 'true');
+                localStorage.setItem('questCompleted', 'true');
+                renderQuestStatusUI();
+            }
+        } catch (e) {
+            console.warn('[Quest] Ошибка облачной валидации:', e);
+        }
+    }
 
     if (hasCompleted && !isAdmin) {
         alert('Вы уже успешно завершили этот квест.\n\nСогласно регламенту, пройти испытание можно только 1 раз. Если у вас возникла техническая ошибка или сбой — обратитесь к администраторам для перезапуска.');
+        renderQuestStatusUI();
         return;
     }
 

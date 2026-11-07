@@ -78,6 +78,88 @@
                 </div>
             </div>
 
+            <!-- Баннер завершения ивента -->
+            <div class="spotlight-card mb-4 border-warning-subtle" style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.08) 0%, rgba(0, 0, 0, 0.4) 100%);">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="rounded-circle p-3 bg-warning-subtle text-warning d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-trophy-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <span class="badge bg-warning text-dark font-mono small mb-1">ИВЕНТ ЗАВЕРШЕН (07.11.2026)</span>
+                            <h2 class="h5 fw-bold mb-1">Официальные итоги «Квест 1: Аттестация семьи»</h2>
+                            <p class="text-secondary small mb-0">Прием результатов закрыт в 20:00 по МСК. Ниже представлен утвержденный реестр победителей и участников.</p>
+                        </div>
+                    </div>
+                    <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle font-mono px-3 py-2">
+                        <i class="bi bi-check2-all me-1"></i> ИТОГИ УТВЕРЖДЕНЫ
+                    </span>
+                </div>
+            </div>
+
+            <!-- Сетка призеров (Подиум) -->
+            <div class="row g-3 mb-4" id="winnersPodium">
+                <div class="col-12 col-md-4">
+                    <div class="spotlight-card h-100 text-center border-warning-subtle" style="background: rgba(234, 179, 8, 0.05);">
+                        <div class="fs-1 mb-2">🥇</div>
+                        <span class="badge bg-warning text-dark font-mono mb-2">1 МЕСТО</span>
+                        <h3 class="h5 fw-bold mb-1">Евгений Милонов</h3>
+                        <div class="font-mono text-secondary small mb-2">ID: 130-152 · 04:48.81</div>
+                        <div class="p-2 rounded bg-warning-subtle text-warning-emphasis font-mono small fw-semibold">
+                            🎁 СЕКРЕТНЫЙ ПРИЗ
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <div class="spotlight-card h-100 text-center border-light-subtle" style="background: rgba(255, 255, 255, 0.03);">
+                        <div class="fs-1 mb-2">🥈</div>
+                        <span class="badge bg-light text-dark font-mono mb-2">2 МЕСТО</span>
+                        <h3 class="h5 fw-bold mb-1">Ян Милонов</h3>
+                        <div class="font-mono text-secondary small mb-2">ID: 376-939 · 05:25.60</div>
+                        <div class="p-2 rounded bg-body-tertiary border border-secondary-subtle text-light font-mono small fw-semibold">
+                            💵 500.000$ НАЛИЧНЫМИ
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <div class="spotlight-card h-100 text-center border-danger-subtle" style="background: rgba(244, 63, 94, 0.05);">
+                        <div class="fs-1 mb-2">🥉</div>
+                        <span class="badge bg-danger-subtle text-danger-emphasis font-mono mb-2 border border-danger-subtle">3 МЕСТО</span>
+                        <h3 class="h5 fw-bold mb-1">Дмитрий Милонов</h3>
+                        <div class="font-mono text-secondary small mb-2">ID: 487-898 · 06:42.15</div>
+                        <div class="p-2 rounded bg-danger-subtle text-danger-emphasis font-mono small fw-semibold">
+                            💵 250.000$ НАЛИЧНЫМИ
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Специальная номинация для Алика Милонова -->
+                <div class="col-12">
+                    <div class="spotlight-card p-3 border-info-subtle" style="background: rgba(14, 165, 233, 0.05);">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="fs-2">🎖️</div>
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle font-mono">СПЕЦИАЛЬНАЯ НОМИНАЦИЯ</span>
+                                        <h4 class="h6 fw-bold mb-0">Алик Милонов (ID: 301-420)</h4>
+                                        <span class="badge bg-secondary font-mono small">Время: 01:57.74</span>
+                                    </div>
+                                    <div class="text-secondary small mt-1">
+                                        Решение Ивент-отдела: ввиду обнаруженного технического сбоя платформы (двойное прохождение), результат участника вынесен в отдельную номинацию со специальным поощрительным призом от семьи.
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle font-mono px-3 py-2">
+                                <i class="bi bi-gift-fill me-1"></i> ПООЩРИТЕЛЬНЫЙ ПРИЗ
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="spotlight-card p-0 overflow-hidden">
                 <div class="table-responsive">
                     <table class="table-custom">
@@ -107,7 +189,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-    <script src="../js/firebase-db.js?v=3.1"></script>
-    <script src="../js/script.js?v=3.1"></script>
+    <script src="../js/firebase-db.js?v=3.2"></script>
+    <script src="../js/script.js?v=3.2"></script>
 </body>
 </html>
