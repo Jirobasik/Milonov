@@ -136,13 +136,24 @@ function addToRatingTable(username, time) {
 
 // ─── Константы Администрации ─────────────────────────────────────────────────
 
-const ADMIN_USER_IDS = ['264-013'];
+const ADMIN_USER_IDS = ['264-013', '859-200'];
 const HERCULES_MASTER_HASH = 'f6071d2502d20ca631f801302a879657ec5f5b50ff0afd4062a0a1c705c6b3f6'; // sha256("787898Jo")
 
 function isCurrentAdmin() {
     const userId = localStorage.getItem('userId');
     const isAdmin = localStorage.getItem('isAdmin') === 'true';
-    return isAdmin || ADMIN_USER_IDS.includes(userId);
+    if (isAdmin || (userId && ADMIN_USER_IDS.includes(userId))) return true;
+
+    try {
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        const cur = users.find(u => (userId && u.userId === userId) || (u.username && u.username === localStorage.getItem('username')));
+        if (cur && (cur.isAdmin === true || cur.role === 'admin' || cur.role === 'Админ')) {
+            localStorage.setItem('isAdmin', 'true');
+            return true;
+        }
+    } catch (e) {}
+
+    return false;
 }
 
 // ─── Аутентификация (Регистрация и Вход) ──────────────────────────────────────
@@ -1076,6 +1087,11 @@ async function finishQuest(totalSeconds) {
     el('quest-completed')?.classList.add('active');
     updateProgressBar(true);
 
+    const adminTestBtn = el('adminTestAgainBtn');
+    if (adminTestBtn) {
+        adminTestBtn.style.display = isCurrentAdmin() ? 'inline-block' : 'none';
+    }
+
     renderQuestStatusUI();
 }
 window.finishQuest = finishQuest;
@@ -1100,16 +1116,47 @@ function renderQuestStatusUI() {
     const topBadge = el('questTopStatusBadge');
     const btn = el('openQuestBtn');
     const notice = el('questStatusNotice');
+    const isAdmin = isCurrentAdmin();
     const hasCompleted = isQuestCompletedForCurrentUser();
 
     if (!badge && !btn) return;
 
     if (badge) {
-        badge.classList.remove('status-active', 'status-paused', 'status-maintenance', 'bg-secondary', 'bg-success-subtle');
+        badge.classList.remove('status-active', 'status-paused', 'status-maintenance', 'bg-secondary', 'bg-success-subtle', 'bg-warning-subtle');
     }
 
     // 1. Проверка: квест уже пройден пользователем (лимит: 1 раз)
     if (hasCompleted) {
+        if (isAdmin) {
+            // ДЛЯ АДМИНИСТРАТОРОВ: кнопка тестирования ВСЕГДА активна и доступна!
+            if (badge) {
+                badge.textContent = 'ТЕСТ [АДМИН]';
+                badge.className = 'badge bg-warning-subtle text-warning-emphasis font-mono border border-warning-subtle';
+            }
+            if (topBadge) topBadge.textContent = 'Тестирование квеста [Админ]';
+            if (notice) {
+                notice.style.display = 'block';
+                notice.style.background = 'rgba(234, 179, 8, 0.1)';
+                notice.style.color = '#fde047';
+                notice.style.border = '1px solid rgba(234, 179, 8, 0.3)';
+                notice.innerHTML = `
+                    <div>
+                        <i class="bi bi-shield-lock-fill text-warning me-1"></i>
+                        <strong>Режим тестирования администратора:</strong> вы уже проходили квест, но как администратор можете повторно запускать и проверять все узлы в любое время.
+                    </div>
+                `;
+            }
+            if (btn) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+                btn.className = 'btn-shiny btn-shiny-primary';
+                btn.innerHTML = '<i class="bi bi-play-fill me-1"></i> Начать «Квест 1» (Тест [Админ])';
+            }
+            return;
+        }
+
+        // ДЛЯ ОБЫЧНЫХ ИГРОКОВ: строго заблокировано (1/1)
         if (badge) {
             badge.textContent = 'ПРОЙДЕН (1/1)';
             badge.className = 'badge bg-secondary font-mono border border-secondary-subtle';
@@ -1280,6 +1327,7 @@ function closeQuest() {
     const container = el('quest-container');
     if (container) container.style.display = 'none';
     if (list) list.style.display = 'block';
+    renderQuestStatusUI();
 }
 
 
