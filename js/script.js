@@ -2238,7 +2238,7 @@ window.onload = function () {
             if (skipBtn) skipBtn.style.display = 'inline-block';
         }
 
-        // Слушатель сброса квеста для текущего игрока в реальном времени
+        // Слушатель сброса и завершения квеста для текущего игрока в реальном времени
         const curUid = localStorage.getItem('userId');
         if (curUid && typeof fbAvailable !== 'undefined' && fbAvailable && typeof db !== 'undefined' && db) {
             try {
@@ -2246,7 +2246,12 @@ window.onload = function () {
                     if (doc.exists) {
                         const data = doc.data();
                         const wasCompleted = (localStorage.getItem('questCompleted_' + curUid) === 'true');
-                        if (data.questCompleted === false && wasCompleted) {
+                        if (data.questCompleted === true && !wasCompleted) {
+                            // Защита от двойного прохождения (инкогнито / очистка кэша): синхронизируем из облака
+                            localStorage.setItem('questCompleted_' + curUid, 'true');
+                            localStorage.setItem('questCompleted', 'true');
+                            renderQuestStatusUI();
+                        } else if (data.questCompleted === false && wasCompleted) {
                             localStorage.removeItem('questCompleted_' + curUid);
                             localStorage.removeItem('questCompletedTime_' + curUid);
                             renderQuestStatusUI();

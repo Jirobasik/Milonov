@@ -180,6 +180,27 @@ async function fbResetUserQuest(userId) {
 }
 
 /**
+ * Проверить в облаке Firestore, завершил ли пользователь квест
+ */
+async function fbCheckUserQuestCompleted(userId) {
+  if (!fbAvailable || !db || !userId) return false;
+  try {
+    const userDoc = await db.collection('users').doc(userId).get();
+    if (userDoc.exists && userDoc.data().questCompleted === true) {
+      return true;
+    }
+    const compDoc = await db.collection('quest_completions').doc(userId).get();
+    if (compDoc.exists) {
+      return true;
+    }
+    return false;
+  } catch (err) {
+    console.warn('[Firebase] Ошибка проверки завершения квеста:', err);
+    return false;
+  }
+}
+
+/**
  * Слушатель пользователей в реальном времени (для панели администратора)
  */
 function fbListenUsers(callback) {
